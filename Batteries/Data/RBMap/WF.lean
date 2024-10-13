@@ -552,7 +552,8 @@ export RBNode (IsMonotone)
 This requires `IsMonotone` on the function in order to preserve the order invariant.
 If the function is not monotone, use `RBSet.map` instead.
 -/
-@[inline] def mapMonotone (f : α → β) [IsMonotone cmpα cmpβ f] (t : RBSet α cmpα) : RBSet β cmpβ :=
+@[inline] def mapMonotone {α : Type u} {β : Type v} [Ord α] [Ord β]
+  (f : α → β) [IsMonotone compare compare f] (t : RBSet α) : RBSet β :=
   ⟨t.1.map f, have ⟨h₁, _, _, h₂⟩ := t.2.out; .mk (h₁.map _) h₂.map⟩
 
 end RBSet
@@ -570,19 +571,22 @@ We extract this as a function so that `IsMonotone (mapSnd f)` can be an instance
 
 open Ordering (byKey)
 
-instance (cmp : α → α → Ordering) (f : α → β → γ) :
-    IsMonotone (byKey Prod.fst cmp) (byKey Prod.fst cmp) (mapSnd f) where
+instance instIsMonotoneByKeyMapSnd [Ord α] (f : α → β → γ) :
+    IsMonotone (byKey Prod.fst) (byKey Prod.fst) (mapSnd f) where
   lt_mono | ⟨h⟩ => ⟨@fun _ => @h {
     symm := fun (a₁, b₁) (a₂, b₂) =>
-      OrientedCmp.symm (cmp := byKey Prod.fst cmp) (a₁, f a₁ b₁) (a₂, f a₂ b₂)
+      OrientedCmp.symm (cmp := byKey Prod.fst) (a₁, f a₁ b₁) (a₂, f a₂ b₂)
     le_trans := @fun (a₁, b₁) (a₂, b₂) (a₃, b₃) =>
-      TransCmp.le_trans (cmp := byKey Prod.fst cmp)
+      TransCmp.le_trans (cmp := byKey Prod.fst)
         (x := (a₁, f a₁ b₁)) (y := (a₂, f a₂ b₂)) (z := (a₃, f a₃ b₃))
   }⟩
 
 end Imp
 
+open scoped Ordering in
 /-- `O(n)`. Map a function on the values in the map. -/
-def mapVal (f : α → β → γ) (t : RBMap α β cmp) : RBMap α γ cmp := t.mapMonotone (Imp.mapSnd f)
+def mapVal [Ord α] (f : α → β → γ) (t : RBMap α β) : RBMap α γ :=
+  let _ := Imp.instIsMonotoneByKeyMapSnd f
+  t.mapMonotone (Imp.mapSnd f)
 
 end RBMap

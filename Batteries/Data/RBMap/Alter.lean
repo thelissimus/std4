@@ -325,8 +325,8 @@ open RBNode
 /--
 A sufficient condition for `ModifyWF` is that the new element compares equal to the original.
 -/
-theorem ModifyWF.of_eq {t : RBSet α cmp}
-    (H : ∀ {x}, RBNode.find? cut t.val = some x → cmpEq cmp (f x) x) : ModifyWF t cut f := by
+theorem ModifyWF.of_eq [Ord α] {t : RBSet α}
+    (H : ∀ {x}, RBNode.find? cut t.val = some x → cmpEq compare (f x) x) : ModifyWF t cut f := by
   refine ⟨.modify ?_ t.2⟩
   revert H; rw [find?_eq_zoom]
   cases (t.1.zoom cut).1 <;> intro H <;> [trivial; exact H rfl]
@@ -334,15 +334,16 @@ theorem ModifyWF.of_eq {t : RBSet α cmp}
 end RBSet
 
 namespace RBMap
+open scoped Ordering
 
 /--
 `O(log n)`. In-place replace the corresponding to key `k`.
 This takes the element out of the tree while `f` runs,
 so it uses the element linearly if `t` is unshared.
 -/
-def modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
-  @RBSet.modifyP _ _ t (cmp k ·.1) (fun (a, b) => (a, f b))
-    (.of_eq fun _ => ⟨OrientedCmp.cmp_refl (cmp := Ordering.byKey Prod.fst cmp)⟩)
+def modify [Ord α] (t : RBMap α β) (k : α) (f : β → β) : RBMap α β :=
+  @RBSet.modifyP _ _ t (compare k ·.1) (fun (a, b) => (a, f b))
+    (.of_eq fun _ => ⟨OrientedCmp.cmp_refl (cmp := Ordering.byKey Prod.fst)⟩)
 
 /-- Auxiliary definition for `alter`. -/
 def alter.adapt (k : α) (f : Option β → Option β) : Option (α × β) → Option (α × β)
@@ -366,12 +367,11 @@ The element is used linearly if `t` is unshared.
 The `AlterWF` assumption is required because `f` may change
 the ordering properties of the element, which would break the invariants.
 -/
-@[specialize] def alter
-    (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp := by
-  refine @RBSet.alterP _ _ t (cmp k ·.1) (alter.adapt k f) ⟨.alter (@fun _ t' p eq => ?_) t.2⟩
+@[specialize] def alter [Ord α] (t : RBMap α β) (k : α) (f : Option β → Option β) : RBMap α β := by
+  refine @RBSet.alterP _ _ t (compare k ·.1) (alter.adapt k f) ⟨.alter (@fun _ t' p eq => ?_) t.2⟩
   cases t' <;> simp [alter.adapt, RBNode.root?] <;> split <;> intro h <;> cases h
   · exact ⟨(t.2.out.1.zoom eq).2.2.2.toRootOrdered, ⟨⟩⟩
   · refine ⟨(?a).RootOrdered_congr.2 (t.2.out.1.zoom eq).2.2.1.1, ?a⟩
-    exact ⟨OrientedCmp.cmp_refl (cmp := Ordering.byKey Prod.fst cmp)⟩
+    exact ⟨OrientedCmp.cmp_refl (cmp := Ordering.byKey Prod.fst)⟩
 
 end RBMap

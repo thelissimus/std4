@@ -358,12 +358,14 @@ namespace Ordering
 open Batteries
 
 /-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
-@[inline] def byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering := cmp (f a) (f b)
+@[inline] def byKey [Ord β] (f : α → β) (a b : α) : Ordering := compare (f a) (f b)
 
-instance (f : α → β) (cmp : β → β → Ordering) [OrientedCmp cmp] : OrientedCmp (byKey f cmp) where
+instance instOrientedCmpByKeyOrd [Ord β] (f : α → β) [@OrientedCmp β compare] : OrientedCmp (byKey f) where
   symm a b := OrientedCmp.symm (f a) (f b)
 
-instance (f : α → β) (cmp : β → β → Ordering) [TransCmp cmp] : TransCmp (byKey f cmp) where
+instance instTransCmpByKeyOrd [Ord β] (f : α → β) [@TransCmp β compare] : TransCmp (byKey f) where
   le_trans h₁ h₂ := TransCmp.le_trans (α := β) h₁ h₂
+
+scoped instance instOrdProdFst [Ord α] {β} : Ord (α × β) := ⟨Ordering.byKey Prod.fst⟩
 
 end Ordering

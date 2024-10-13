@@ -820,238 +820,238 @@ open RBNode (IsCut IsStrictCut)
 
 namespace RBSet
 
-@[simp] theorem val_toList {t : RBSet α cmp} : t.1.toList = t.toList := rfl
+@[simp] theorem val_toList [Ord α] {t : RBSet α} : t.1.toList = t.toList := rfl
 
-@[simp] theorem mkRBSet_eq : mkRBSet α cmp = ∅ := rfl
-@[simp] theorem empty_eq : @RBSet.empty α cmp = ∅ := rfl
-@[simp] theorem default_eq : (default : RBSet α cmp) = ∅ := rfl
-@[simp] theorem empty_toList : toList (∅ : RBSet α cmp) = [] := rfl
-@[simp] theorem single_toList : toList (single a : RBSet α cmp) = [a] := rfl
+@[simp] theorem mkRBSet_eq [Ord α] : mkRBSet α = ∅ := rfl
+@[simp] theorem empty_eq : @RBSet.empty α inst = ∅ := rfl
+@[simp] theorem default_eq [Ord α] : (default : RBSet α) = ∅ := rfl
+@[simp] theorem empty_toList [Ord α] : toList (∅ : RBSet α) = [] := rfl
+@[simp] theorem single_toList [Ord α] : toList (single a : RBSet α) = [a] := rfl
 
-theorem mem_toList {t : RBSet α cmp} : x ∈ toList t ↔ x ∈ t.1 := RBNode.mem_toList
+theorem mem_toList [Ord α] {t : RBSet α} : x ∈ toList t ↔ x ∈ t.1 := RBNode.mem_toList
 
-theorem mem_congr [@TransCmp α cmp] {t : RBSet α cmp} (h : cmp x y = .eq) : x ∈ t ↔ y ∈ t :=
+theorem mem_congr [Ord α] [@TransCmp α compare] {t : RBSet α} (h : compare x y = .eq) : x ∈ t ↔ y ∈ t :=
   RBNode.mem_congr h
 
-theorem mem_iff_mem_toList {t : RBSet α cmp} : x ∈ t ↔ ∃ y ∈ toList t, cmp x y = .eq :=
+theorem mem_iff_mem_toList [Ord α] {t : RBSet α} : x ∈ t ↔ ∃ y ∈ toList t, compare x y = .eq :=
   RBNode.mem_def.trans <| by simp [mem_toList]
 
-theorem mem_of_mem_toList [@OrientedCmp α cmp] {t : RBSet α cmp} (h : x ∈ toList t) : x ∈ t :=
+theorem mem_of_mem_toList [Ord α] [@OrientedCmp α compare] {t : RBSet α} (h : x ∈ toList t) : x ∈ t :=
   mem_iff_mem_toList.2 ⟨_, h, OrientedCmp.cmp_refl⟩
 
-theorem foldl_eq_foldl_toList {t : RBSet α cmp} : t.foldl f init = t.toList.foldl f init :=
+theorem foldl_eq_foldl_toList [Ord α] {t : RBSet α} : t.foldl f init = t.toList.foldl f init :=
   RBNode.foldl_eq_foldl_toList
 
-theorem foldr_eq_foldr_toList {t : RBSet α cmp} : t.foldr f init = t.toList.foldr f init :=
+theorem foldr_eq_foldr_toList [Ord α] {t : RBSet α} : t.foldr f init = t.toList.foldr f init :=
   RBNode.foldr_eq_foldr_toList
 
-theorem foldlM_eq_foldlM_toList [Monad m] [LawfulMonad m] {t : RBSet α cmp} :
+theorem foldlM_eq_foldlM_toList [Ord α] [Monad m] [LawfulMonad m] {t : RBSet α} :
     t.foldlM (m := m) f init = t.toList.foldlM f init := RBNode.foldlM_eq_foldlM_toList
 
-theorem forM_eq_forM_toList [Monad m] [LawfulMonad m] {t : RBSet α cmp} :
+theorem forM_eq_forM_toList [Ord α] [Monad m] [LawfulMonad m] {t : RBSet α} :
     t.forM (m := m) f = t.toList.forM f := RBNode.forM_eq_forM_toList
 
-theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBSet α cmp} :
+theorem forIn_eq_forIn_toList [Ord α] [Monad m] [LawfulMonad m] {t : RBSet α} :
     forIn (m := m) t init f = forIn t.toList init f := RBNode.forIn_eq_forIn_toList
 
-theorem toStream_eq {t : RBSet α cmp} : toStream t = t.1.toStream .nil := rfl
+theorem toStream_eq [Ord α] {t : RBSet α} : toStream t = t.1.toStream .nil := rfl
 
-@[simp] theorem toStream_toList {t : RBSet α cmp} : (toStream t).toList = t.toList := by
+@[simp] theorem toStream_toList [Ord α] {t : RBSet α} : (toStream t).toList = t.toList := by
   simp [toStream_eq]
 
-theorem isEmpty_iff_toList_eq_nil {t : RBSet α cmp} :
+theorem isEmpty_iff_toList_eq_nil [Ord α] {t : RBSet α} :
     t.isEmpty ↔ t.toList = [] := by obtain ⟨⟨⟩, _⟩ := t <;> simp [toList, isEmpty]
 
-theorem toList_sorted {t : RBSet α cmp} : t.toList.Pairwise (RBNode.cmpLT cmp) :=
+theorem toList_sorted [Ord α] {t : RBSet α} : t.toList.Pairwise (RBNode.cmpLT compare) :=
   t.2.out.1.toList_sorted
 
-theorem findP?_some_eq_eq {t : RBSet α cmp} : t.findP? cut = some y → cut y = .eq :=
+theorem findP?_some_eq_eq [Ord α] {t : RBSet α} : t.findP? cut = some y → cut y = .eq :=
   RBNode.find?_some_eq_eq
 
-theorem find?_some_eq_eq {t : RBSet α cmp} : t.find? x = some y → cmp x y = .eq :=
+theorem find?_some_eq_eq [Ord α] {t : RBSet α} : t.find? x = some y → compare x y = .eq :=
   findP?_some_eq_eq
 
-theorem findP?_some_mem_toList {t : RBSet α cmp} (h : t.findP? cut = some y) : y ∈ toList t :=
+theorem findP?_some_mem_toList [Ord α] {t : RBSet α} (h : t.findP? cut = some y) : y ∈ toList t :=
   mem_toList.2 <| RBNode.find?_some_mem h
 
-theorem find?_some_mem_toList {t : RBSet α cmp} (h : t.find? x = some y) : y ∈ toList t :=
+theorem find?_some_mem_toList [Ord α] {t : RBSet α} (h : t.find? x = some y) : y ∈ toList t :=
   findP?_some_mem_toList h
 
-theorem findP?_some_memP {t : RBSet α cmp} (h : t.findP? cut = some y) : t.MemP cut :=
+theorem findP?_some_memP [Ord α] {t : RBSet α} (h : t.findP? cut = some y) : t.MemP cut :=
   RBNode.find?_some_memP h
 
-theorem find?_some_mem {t : RBSet α cmp} (h : t.find? x = some y) : x ∈ t :=
+theorem find?_some_mem [Ord α] {t : RBSet α} (h : t.find? x = some y) : x ∈ t :=
   findP?_some_memP h
 
-theorem mem_toList_unique [@TransCmp α cmp] {t : RBSet α cmp}
-    (hx : x ∈ toList t) (hy : y ∈ toList t) (e : cmp x y = .eq) : x = y :=
+theorem mem_toList_unique [Ord α] [@TransCmp α compare] {t : RBSet α}
+    (hx : x ∈ toList t) (hy : y ∈ toList t) (e : compare x y = .eq) : x = y :=
   t.2.out.1.unique (mem_toList.1 hx) (mem_toList.1 hy) e
 
-theorem findP?_some [@TransCmp α cmp] [IsStrictCut cmp cut] {t : RBSet α cmp} :
+theorem findP?_some [Ord α] [@TransCmp α compare] [IsStrictCut compare cut] {t : RBSet α} :
     t.findP? cut = some y ↔ y ∈ toList t ∧ cut y = .eq :=
   t.2.out.1.find?_some.trans <| by simp [mem_toList]
 
-theorem find?_some [@TransCmp α cmp] {t : RBSet α cmp} :
-    t.find? x = some y ↔ y ∈ toList t ∧ cmp x y = .eq := findP?_some
+theorem find?_some [Ord α] [@TransCmp α compare] {t : RBSet α} :
+    t.find? x = some y ↔ y ∈ toList t ∧ compare x y = .eq := findP?_some
 
-theorem memP_iff_findP? [@TransCmp α cmp] [IsCut cmp cut] {t : RBSet α cmp} :
+theorem memP_iff_findP? [Ord α] [@TransCmp α compare] [IsCut compare cut] {t : RBSet α} :
     MemP cut t ↔ ∃ y, t.findP? cut = some y := t.2.out.1.memP_iff_find?
 
-theorem mem_iff_find? [@TransCmp α cmp] {t : RBSet α cmp} :
+theorem mem_iff_find? [Ord α] [@TransCmp α compare] {t : RBSet α} :
     x ∈ t ↔ ∃ y, t.find? x = some y := memP_iff_findP?
 
-@[simp] theorem contains_iff [@TransCmp α cmp] {t : RBSet α cmp} :
+@[simp] theorem contains_iff [Ord α] [@TransCmp α compare] {t : RBSet α} :
     t.contains x ↔ x ∈ t := Option.isSome_iff_exists.trans mem_iff_find?.symm
 
-instance [@TransCmp α cmp] {t : RBSet α cmp} : Decidable (x ∈ t) := decidable_of_iff _ contains_iff
+instance [Ord α] [@TransCmp α compare] {t : RBSet α} : Decidable (x ∈ t) := decidable_of_iff _ contains_iff
 
-theorem size_eq (t : RBSet α cmp) : t.size = t.toList.length := RBNode.size_eq
+theorem size_eq [Ord α] (t : RBSet α) : t.size = t.toList.length := RBNode.size_eq
 
-theorem mem_toList_insert_self (v) (t : RBSet α cmp) : v ∈ toList (t.insert v) :=
+theorem mem_toList_insert_self [Ord α] (v) (t : RBSet α) : v ∈ toList (t.insert v) :=
   let ⟨_, _, h⟩ := t.2.out.2; mem_toList.2 (RBNode.mem_insert_self h)
 
-theorem mem_insert_self [@OrientedCmp α cmp] (v) (t : RBSet α cmp) : v ∈ t.insert v :=
+theorem mem_insert_self [Ord α] [@OrientedCmp α compare] (v) (t : RBSet α) : v ∈ t.insert v :=
   mem_of_mem_toList <| mem_toList_insert_self v t
 
-theorem mem_insert_of_eq [@TransCmp α cmp] (t : RBSet α cmp) (h : cmp v v' = .eq) :
+theorem mem_insert_of_eq [Ord α] [@TransCmp α compare] (t : RBSet α) (h : compare v v' = .eq) :
     v' ∈ t.insert v := (mem_congr h).1 (mem_insert_self ..)
 
-theorem mem_toList_insert_of_mem (v) {t : RBSet α cmp} (h : v' ∈ toList t) :
-    v' ∈ toList (t.insert v) ∨ cmp v v' = .eq :=
+theorem mem_toList_insert_of_mem [Ord α] (v) {t : RBSet α} (h : v' ∈ toList t) :
+    v' ∈ toList (t.insert v) ∨ compare v v' = .eq :=
   let ⟨_, _, ht⟩ := t.2.out.2
   .imp_left mem_toList.2 <| RBNode.mem_insert_of_mem ht <| mem_toList.1 h
 
-theorem mem_insert_of_mem_toList [@OrientedCmp α cmp] (v) {t : RBSet α cmp} (h : v' ∈ toList t) :
+theorem mem_insert_of_mem_toList [Ord α] [@OrientedCmp α compare] (v) {t : RBSet α} (h : v' ∈ toList t) :
     v' ∈ t.insert v :=
   match mem_toList_insert_of_mem v h with
   | .inl h' => mem_of_mem_toList h'
   | .inr h' => mem_iff_mem_toList.2 ⟨_, mem_toList_insert_self .., OrientedCmp.cmp_eq_eq_symm.1 h'⟩
 
-theorem mem_insert_of_mem [@TransCmp α cmp] (v) {t : RBSet α cmp} (h : v' ∈ t) : v' ∈ t.insert v :=
+theorem mem_insert_of_mem [Ord α] [@TransCmp α compare] (v) {t : RBSet α} (h : v' ∈ t) : v' ∈ t.insert v :=
   let ⟨_, h₁, h₂⟩ := mem_iff_mem_toList.1 h
   (mem_congr h₂).2 (mem_insert_of_mem_toList v h₁)
 
-theorem mem_toList_insert [@TransCmp α cmp] {t : RBSet α cmp} :
+theorem mem_toList_insert [Ord α] [@TransCmp α compare] {t : RBSet α} :
     v' ∈ toList (t.insert v) ↔ (v' ∈ toList t ∧ t.find? v ≠ some v') ∨ v' = v := by
   let ⟨ht₁, _, _, ht₂⟩ := t.2.out
   simpa [mem_toList] using RBNode.mem_insert ht₂ ht₁
 
-theorem mem_insert [@TransCmp α cmp] {t : RBSet α cmp} :
-    v' ∈ t.insert v ↔ v' ∈ t ∨ cmp v v' = .eq := by
+theorem mem_insert [Ord α] [@TransCmp α compare] {t : RBSet α} :
+    v' ∈ t.insert v ↔ v' ∈ t ∨ compare v v' = .eq := by
   refine ⟨fun h => ?_, fun | .inl h => mem_insert_of_mem _ h | .inr h => mem_insert_of_eq _ h⟩
   let ⟨_, h₁, h₂⟩ := mem_iff_mem_toList.1 h
   match mem_toList_insert.1 h₁ with
   | .inl ⟨h₃, _⟩ => exact .inl <| mem_iff_mem_toList.2 ⟨_, h₃, h₂⟩
   | .inr rfl => exact .inr <| OrientedCmp.cmp_eq_eq_symm.1 h₂
 
-theorem find?_congr [@TransCmp α cmp] (t : RBSet α cmp) (h : cmp v₁ v₂ = .eq) :
+theorem find?_congr [Ord α] [@TransCmp α compare] (t : RBSet α) (h : compare v₁ v₂ = .eq) :
     t.find? v₁ = t.find? v₂ := by simp [find?, TransCmp.cmp_congr_left' h]
 
-theorem findP?_insert_of_eq [@TransCmp α cmp] [IsStrictCut cmp cut]
-    (t : RBSet α cmp) (h : cut v = .eq) : (t.insert v).findP? cut = some v :=
+theorem findP?_insert_of_eq [Ord α] [@TransCmp α compare] [IsStrictCut compare cut]
+    (t : RBSet α) (h : cut v = .eq) : (t.insert v).findP? cut = some v :=
   findP?_some.2 ⟨mem_toList_insert_self .., h⟩
 
-theorem find?_insert_of_eq [@TransCmp α cmp] (t : RBSet α cmp) (h : cmp v' v = .eq) :
+theorem find?_insert_of_eq [Ord α] [@TransCmp α compare] (t : RBSet α) (h : compare v' v = .eq) :
     (t.insert v).find? v' = some v := findP?_insert_of_eq t h
 
-theorem findP?_insert_of_ne [@TransCmp α cmp] [IsStrictCut cmp cut]
-    (t : RBSet α cmp) (h : cut v ≠ .eq) : (t.insert v).findP? cut = t.findP? cut := by
+theorem findP?_insert_of_ne [Ord α] [@TransCmp α compare] [IsStrictCut compare cut]
+    (t : RBSet α) (h : cut v ≠ .eq) : (t.insert v).findP? cut = t.findP? cut := by
   refine Option.ext fun u =>
     findP?_some.trans <| .trans (and_congr_left fun h' => ?_) findP?_some.symm
   rw [mem_toList_insert, or_iff_left, and_iff_left]
   · exact mt (fun h => by rwa [IsCut.congr (cut := cut) (find?_some_eq_eq h)]) h
   · rintro rfl; contradiction
 
-theorem find?_insert_of_ne [@TransCmp α cmp] (t : RBSet α cmp) (h : cmp v' v ≠ .eq) :
+theorem find?_insert_of_ne [Ord α] [@TransCmp α compare] (t : RBSet α) (h : compare v' v ≠ .eq) :
     (t.insert v).find? v' = t.find? v' := findP?_insert_of_ne t h
 
-theorem findP?_insert [@TransCmp α cmp] (t : RBSet α cmp) (v cut) [IsStrictCut cmp cut] :
+theorem findP?_insert [Ord α] [@TransCmp α compare] (t : RBSet α) (v cut) [IsStrictCut compare cut] :
     (t.insert v).findP? cut = if cut v = .eq then some v else t.findP? cut := by
   split <;> [exact findP?_insert_of_eq t ‹_›; exact findP?_insert_of_ne t ‹_›]
 
-theorem find?_insert [@TransCmp α cmp] (t : RBSet α cmp) (v v') :
-    (t.insert v).find? v' = if cmp v' v = .eq then some v else t.find? v' := findP?_insert ..
+theorem find?_insert [Ord α] [@TransCmp α compare] (t : RBSet α) (v v') :
+    (t.insert v).find? v' = if compare v' v = .eq then some v else t.find? v' := findP?_insert ..
 
-theorem upperBoundP?_eq_findP? {t : RBSet α cmp} {cut} (H : t.findP? cut = some x) :
+theorem upperBoundP?_eq_findP? [Ord α] {t : RBSet α} {cut} (H : t.findP? cut = some x) :
     t.upperBoundP? cut = some x := RBNode.upperBound?_eq_find? _ H
 
-theorem lowerBoundP?_eq_findP? {t : RBSet α cmp} {cut} (H : t.findP? cut = some x) :
+theorem lowerBoundP?_eq_findP? [Ord α] {t : RBSet α} {cut} (H : t.findP? cut = some x) :
     t.lowerBoundP? cut = some x := RBNode.lowerBound?_eq_find? _ H
 
-theorem upperBound?_eq_find? {t : RBSet α cmp} (H : t.find? x = some y) :
+theorem upperBound?_eq_find? [Ord α] {t : RBSet α} (H : t.find? x = some y) :
     t.upperBound? x = some y := upperBoundP?_eq_findP? H
 
-theorem lowerBound?_eq_find? {t : RBSet α cmp} (H : t.find? x = some y) :
+theorem lowerBound?_eq_find? [Ord α] {t : RBSet α} (H : t.find? x = some y) :
     t.lowerBound? x = some y := lowerBoundP?_eq_findP? H
 
 /-- The value `x` returned by `upperBoundP?` is greater or equal to the `cut`. -/
-theorem upperBoundP?_ge {t : RBSet α cmp} : t.upperBoundP? cut = some x → cut x ≠ .gt :=
+theorem upperBoundP?_ge [Ord α] {t : RBSet α} : t.upperBoundP? cut = some x → cut x ≠ .gt :=
   RBNode.upperBound?_ge
 
 /-- The value `y` returned by `upperBound? x` is greater or equal to `x`. -/
-theorem upperBound?_ge {t : RBSet α cmp} : t.upperBound? x = some y → cmp x y ≠ .gt :=
+theorem upperBound?_ge [Ord α] {t : RBSet α} : t.upperBound? x = some y → compare x y ≠ .gt :=
   upperBoundP?_ge
 
 /-- The value `x` returned by `lowerBoundP?` is less or equal to the `cut`. -/
-theorem lowerBoundP?_le {t : RBSet α cmp} : t.lowerBoundP? cut = some x → cut x ≠ .lt :=
+theorem lowerBoundP?_le [Ord α] {t : RBSet α} : t.lowerBoundP? cut = some x → cut x ≠ .lt :=
   RBNode.lowerBound?_le
 
 /-- The value `y` returned by `lowerBound? x` is less or equal to `x`. -/
-theorem lowerBound?_le {t : RBSet α cmp} : t.lowerBound? x = some y → cmp x y ≠ .lt :=
+theorem lowerBound?_le [Ord α] {t : RBSet α} : t.lowerBound? x = some y → compare x y ≠ .lt :=
   lowerBoundP?_le
 
-theorem upperBoundP?_mem_toList {t : RBSet α cmp} (h : t.upperBoundP? cut = some x) :
+theorem upperBoundP?_mem_toList [Ord α] {t : RBSet α} (h : t.upperBoundP? cut = some x) :
     x ∈ t.toList := mem_toList.2 (RBNode.upperBound?_mem h)
 
-theorem upperBound?_mem_toList {t : RBSet α cmp} (h : t.upperBound? x = some y) :
+theorem upperBound?_mem_toList [Ord α] {t : RBSet α} (h : t.upperBound? x = some y) :
     y ∈ t.toList := upperBoundP?_mem_toList h
 
-theorem lowerBoundP?_mem_toList {t : RBSet α cmp} (h : t.lowerBoundP? cut = some x) :
+theorem lowerBoundP?_mem_toList [Ord α] {t : RBSet α} (h : t.lowerBoundP? cut = some x) :
     x ∈ t.toList := mem_toList.2 (RBNode.lowerBound?_mem h)
 
-theorem lowerBound?_mem_toList {t : RBSet α cmp} (h : t.lowerBound? x = some y) :
+theorem lowerBound?_mem_toList [Ord α] {t : RBSet α} (h : t.lowerBound? x = some y) :
     y ∈ t.toList := lowerBoundP?_mem_toList h
 
-theorem upperBoundP?_mem [@OrientedCmp α cmp] {t : RBSet α cmp}
+theorem upperBoundP?_mem [Ord α] [@OrientedCmp α compare] {t : RBSet α}
     (h : t.upperBoundP? cut = some x) : x ∈ t := mem_of_mem_toList (upperBoundP?_mem_toList h)
 
-theorem lowerBoundP?_mem [@OrientedCmp α cmp] {t : RBSet α cmp}
+theorem lowerBoundP?_mem [Ord α] [@OrientedCmp α compare] {t : RBSet α}
     (h : t.lowerBoundP? cut = some x) : x ∈ t := mem_of_mem_toList (lowerBoundP?_mem_toList h)
 
-theorem upperBound?_mem [@OrientedCmp α cmp] {t : RBSet α cmp}
+theorem upperBound?_mem [Ord α] [@OrientedCmp α compare] {t : RBSet α}
     (h : t.upperBound? x = some y) : y ∈ t := upperBoundP?_mem h
 
-theorem lowerBound?_mem [@OrientedCmp α cmp] {t : RBSet α cmp}
+theorem lowerBound?_mem [Ord α] [@OrientedCmp α compare] {t : RBSet α}
     (h : t.lowerBound? x = some y) : y ∈ t := lowerBoundP?_mem h
 
-theorem upperBoundP?_exists {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut] :
+theorem upperBoundP?_exists [Ord α] {t : RBSet α} [@TransCmp α compare] [IsCut compare cut] :
     (∃ x, t.upperBoundP? cut = some x) ↔ ∃ x ∈ t, cut x ≠ .gt := by
   simp [upperBoundP?, t.2.out.1.upperBound?_exists, mem_toList, mem_iff_mem_toList]
   exact ⟨
     fun ⟨x, h1, h2⟩ => ⟨x, ⟨x, h1, OrientedCmp.cmp_refl⟩, h2⟩,
     fun ⟨x, ⟨y, h1, h2⟩, eq⟩ => ⟨y, h1, IsCut.congr (cut := cut) h2 ▸ eq⟩⟩
 
-theorem lowerBoundP?_exists {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut] :
+theorem lowerBoundP?_exists [Ord α] {t : RBSet α} [@TransCmp α compare] [IsCut compare cut] :
     (∃ x, t.lowerBoundP? cut = some x) ↔ ∃ x ∈ t, cut x ≠ .lt := by
   simp [lowerBoundP?, t.2.out.1.lowerBound?_exists, mem_toList, mem_iff_mem_toList]
   exact ⟨
     fun ⟨x, h1, h2⟩ => ⟨x, ⟨x, h1, OrientedCmp.cmp_refl⟩, h2⟩,
     fun ⟨x, ⟨y, h1, h2⟩, eq⟩ => ⟨y, h1, IsCut.congr (cut := cut) h2 ▸ eq⟩⟩
 
-theorem upperBound?_exists {t : RBSet α cmp} [TransCmp cmp] :
-    (∃ y, t.upperBound? x = some y) ↔ ∃ y ∈ t, cmp x y ≠ .gt := upperBoundP?_exists
+theorem upperBound?_exists [Ord α] {t : RBSet α} [@TransCmp α compare] :
+    (∃ y, t.upperBound? x = some y) ↔ ∃ y ∈ t, compare x y ≠ .gt := upperBoundP?_exists
 
-theorem lowerBound?_exists {t : RBSet α cmp} [TransCmp cmp] :
-    (∃ y, t.lowerBound? x = some y) ↔ ∃ y ∈ t, cmp x y ≠ .lt := lowerBoundP?_exists
+theorem lowerBound?_exists [Ord α] {t : RBSet α} [@TransCmp α compare] :
+    (∃ y, t.lowerBound? x = some y) ↔ ∃ y ∈ t, compare x y ≠ .lt := lowerBoundP?_exists
 
 /--
 A statement of the least-ness of the result of `upperBoundP?`. If `x` is the return value of
 `upperBoundP?` and it is strictly greater than the cut, then any other `y < x` in the tree is in
 fact strictly less than the cut (so there is no exact match, and nothing closer to the cut).
 -/
-theorem upperBoundP?_least {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut]
+theorem upperBoundP?_least [Ord α] {t : RBSet α} [@TransCmp α compare] [IsCut compare cut]
     (H : t.upperBoundP? cut = some x) (hy : y ∈ t)
-    (xy : cmp y x = .lt) (hx : cut x = .lt) : cut y = .gt :=
+    (xy : compare y x = .lt) (hx : cut x = .lt) : cut y = .gt :=
   let ⟨_, h1, h2⟩ := mem_iff_mem_toList.1 hy
   IsCut.congr (cut := cut) h2 ▸
   t.2.out.1.upperBound?_least H (mem_toList.1 h1) (TransCmp.cmp_congr_left h2 ▸ xy) hx
@@ -1061,170 +1061,178 @@ A statement of the greatest-ness of the result of `lowerBoundP?`. If `x` is the 
 `lowerBoundP?` and it is strictly less than the cut, then any other `y > x` in the tree is in fact
 strictly greater than the cut (so there is no exact match, and nothing closer to the cut).
 -/
-theorem lowerBoundP?_greatest {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut]
+theorem lowerBoundP?_greatest [Ord α] {t : RBSet α} [@TransCmp α compare] [IsCut compare cut]
     (H : t.lowerBoundP? cut = some x) (hy : y ∈ t)
-    (xy : cmp x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
+    (xy : compare x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
   let ⟨_, h1, h2⟩ := mem_iff_mem_toList.1 hy
   IsCut.congr (cut := cut) h2 ▸
   t.2.out.1.lowerBound?_greatest H (mem_toList.1 h1) (TransCmp.cmp_congr_right h2 ▸ xy) hx
 
-theorem memP_iff_upperBoundP? {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut] :
+theorem memP_iff_upperBoundP? [Ord α] {t : RBSet α} [@TransCmp α compare] [IsCut compare cut] :
     t.MemP cut ↔ ∃ x, t.upperBoundP? cut = some x ∧ cut x = .eq := t.2.out.1.memP_iff_upperBound?
 
-theorem memP_iff_lowerBoundP? {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut] :
+theorem memP_iff_lowerBoundP? [Ord α] {t : RBSet α} [@TransCmp α compare] [IsCut compare cut] :
     t.MemP cut ↔ ∃ x, t.lowerBoundP? cut = some x ∧ cut x = .eq := t.2.out.1.memP_iff_lowerBound?
 
-theorem mem_iff_upperBound? {t : RBSet α cmp} [TransCmp cmp] :
-    x ∈ t ↔ ∃ y, t.upperBound? x = some y ∧ cmp x y = .eq := memP_iff_upperBoundP?
+theorem mem_iff_upperBound? [Ord α] {t : RBSet α} [@TransCmp α compare] :
+    x ∈ t ↔ ∃ y, t.upperBound? x = some y ∧ compare x y = .eq := memP_iff_upperBoundP?
 
-theorem mem_iff_lowerBound? {t : RBSet α cmp} [TransCmp cmp] :
-    x ∈ t ↔ ∃ y, t.lowerBound? x = some y ∧ cmp x y = .eq := memP_iff_lowerBoundP?
+theorem mem_iff_lowerBound? [Ord α] {t : RBSet α} [@TransCmp α compare] :
+    x ∈ t ↔ ∃ y, t.lowerBound? x = some y ∧ compare x y = .eq := memP_iff_lowerBoundP?
 
 /-- A stronger version of `upperBoundP?_least` that holds when the cut is strict. -/
-theorem lt_upperBoundP? {t : RBSet α cmp} [TransCmp cmp] [IsStrictCut cmp cut]
-    (H : t.upperBoundP? cut = some x) (hy : y ∈ t) : cmp y x = .lt ↔ cut y = .gt :=
+theorem lt_upperBoundP? [Ord α] {t : RBSet α} [@TransCmp α compare] [IsStrictCut compare cut]
+    (H : t.upperBoundP? cut = some x) (hy : y ∈ t) : compare y x = .lt ↔ cut y = .gt :=
   let ⟨_, h1, h2⟩ := mem_iff_mem_toList.1 hy
   IsCut.congr (cut := cut) h2 ▸ TransCmp.cmp_congr_left h2 ▸
   t.2.out.1.lt_upperBound? H (mem_toList.1 h1)
 
 /-- A stronger version of `lowerBoundP?_greatest` that holds when the cut is strict. -/
-theorem lowerBoundP?_lt {t : RBSet α cmp} [TransCmp cmp] [IsStrictCut cmp cut]
-    (H : t.lowerBoundP? cut = some x) (hy : y ∈ t) : cmp x y = .lt ↔ cut y = .lt :=
+theorem lowerBoundP?_lt [Ord α] {t : RBSet α} [@TransCmp α compare] [IsStrictCut compare cut]
+    (H : t.lowerBoundP? cut = some x) (hy : y ∈ t) : compare x y = .lt ↔ cut y = .lt :=
   let ⟨_, h1, h2⟩ := mem_iff_mem_toList.1 hy
   IsCut.congr (cut := cut) h2 ▸ TransCmp.cmp_congr_right h2 ▸
   t.2.out.1.lowerBound?_lt H (mem_toList.1 h1)
 
-theorem lt_upperBound? {t : RBSet α cmp} [TransCmp cmp]
-    (H : t.upperBound? x = some y) (hz : z ∈ t) : cmp z y = .lt ↔ cmp z x = .lt :=
+theorem lt_upperBound? [Ord α] {t : RBSet α} [@TransCmp α compare]
+    (H : t.upperBound? x = some y) (hz : z ∈ t) : compare z y = .lt ↔ compare z x = .lt :=
   (lt_upperBoundP? H hz).trans OrientedCmp.cmp_eq_gt
 
-theorem lowerBound?_lt {t : RBSet α cmp} [TransCmp cmp]
-    (H : t.lowerBound? x = some y) (hz : z ∈ t) : cmp y z = .lt ↔ cmp x z = .lt :=
+theorem lowerBound?_lt [Ord α] {t : RBSet α} [@TransCmp α compare]
+    (H : t.lowerBound? x = some y) (hz : z ∈ t) : compare y z = .lt ↔ compare x z = .lt :=
   lowerBoundP?_lt H hz
 
 end RBSet
 
 namespace RBMap
+open scoped Ordering
 
 -- @[simp] -- FIXME: RBSet.val_toList already triggers here, seems bad?
-theorem val_toList {t : RBMap α β cmp} : t.1.toList = t.toList := rfl
+theorem val_toList [Ord α] {t : RBMap α β} : t.1.toList = t.toList := rfl
 
-@[simp] theorem mkRBSet_eq : mkRBMap α β cmp = ∅ := rfl
-@[simp] theorem empty_eq : @RBMap.empty α β cmp = ∅ := rfl
-@[simp] theorem default_eq : (default : RBMap α β cmp) = ∅ := rfl
-@[simp] theorem empty_toList : toList (∅ : RBMap α β cmp) = [] := rfl
-@[simp] theorem single_toList : toList (single a b : RBMap α β cmp) = [(a, b)] := rfl
+@[simp] theorem mkRBSet_eq [Ord α] : mkRBMap α β = ∅ := rfl
+@[simp] theorem empty_eq : @RBMap.empty α β inst = ∅ := rfl
+@[simp] theorem default_eq [Ord α] : (default : RBMap α β) = ∅ := rfl
+@[simp] theorem empty_toList [Ord α] : toList (∅ : RBMap α β) = [] := rfl
+@[simp] theorem single_toList [Ord α] : toList (single a b : RBMap α β) = [(a, b)] := rfl
 
-theorem mem_toList {t : RBMap α β cmp} : x ∈ toList t ↔ x ∈ t.1 := RBNode.mem_toList
+theorem mem_toList [Ord α] {t : RBMap α β} : x ∈ toList t ↔ x ∈ t.1 := RBNode.mem_toList
 
-theorem foldl_eq_foldl_toList {t : RBMap α β cmp} :
+theorem foldl_eq_foldl_toList [Ord α] {t : RBMap α β} :
     t.foldl f init = t.toList.foldl (fun r p => f r p.1 p.2) init :=
   RBNode.foldl_eq_foldl_toList
 
-theorem foldr_eq_foldr_toList {t : RBMap α β cmp} :
+theorem foldr_eq_foldr_toList [Ord α] {t : RBMap α β} :
     t.foldr f init = t.toList.foldr (fun p r => f p.1 p.2 r) init :=
   RBNode.foldr_eq_foldr_toList
 
-theorem foldlM_eq_foldlM_toList [Monad m] [LawfulMonad m] {t : RBMap α β cmp} :
+theorem foldlM_eq_foldlM_toList [Ord α] [Monad m] [LawfulMonad m] {t : RBMap α β} :
     t.foldlM (m := m) f init = t.toList.foldlM (fun r p => f r p.1 p.2) init :=
   RBNode.foldlM_eq_foldlM_toList
 
-theorem forM_eq_forM_toList [Monad m] [LawfulMonad m] {t : RBMap α β cmp} :
+theorem forM_eq_forM_toList [Ord α] [Monad m] [LawfulMonad m] {t : RBMap α β} :
     t.forM (m := m) f = t.toList.forM (fun p => f p.1 p.2) :=
   RBNode.forM_eq_forM_toList
 
-theorem forIn_eq_forIn_toList [Monad m] [LawfulMonad m] {t : RBMap α β cmp} :
+theorem forIn_eq_forIn_toList [Ord α] [Monad m] [LawfulMonad m] {t : RBMap α β} :
     forIn (m := m) t init f = forIn t.toList init f := RBNode.forIn_eq_forIn_toList
 
-theorem toStream_eq {t : RBMap α β cmp} : toStream t = t.1.toStream .nil := rfl
+theorem toStream_eq [Ord α] {t : RBMap α β} : toStream t = t.1.toStream .nil := rfl
 
-@[simp] theorem toStream_toList {t : RBMap α β cmp} : (toStream t).toList = t.toList :=
+@[simp] theorem toStream_toList [Ord α] {t : RBMap α β} : (toStream t).toList = t.toList :=
   RBSet.toStream_toList
 
-theorem toList_sorted {t : RBMap α β cmp} : t.toList.Pairwise (RBNode.cmpLT (cmp ·.1 ·.1)) :=
+theorem toList_sorted [Ord α] {t : RBMap α β} : t.toList.Pairwise (RBNode.cmpLT (compare ·.1 ·.1)) :=
   RBSet.toList_sorted
 
-theorem findEntry?_some_eq_eq {t : RBMap α β cmp} : t.findEntry? x = some (y, v) → cmp x y = .eq :=
+theorem findEntry?_some_eq_eq [Ord α] {t : RBMap α β} : t.findEntry? x = some (y, v) → compare x y = .eq :=
   RBSet.findP?_some_eq_eq
 
-theorem findEntry?_some_mem_toList {t : RBMap α β cmp} (h : t.findEntry? x = some y) :
+theorem findEntry?_some_mem_toList [Ord α] {t : RBMap α β} (h : t.findEntry? x = some y) :
     y ∈ toList t := RBSet.findP?_some_mem_toList h
 
-theorem find?_some_mem_toList {t : RBMap α β cmp} (h : t.find? x = some v) :
-    ∃ y, (y, v) ∈ toList t ∧ cmp x y = .eq := by
+theorem find?_some_mem_toList [Ord α] {t : RBMap α β} (h : t.find? x = some v) :
+    ∃ y, (y, v) ∈ toList t ∧ compare x y = .eq := by
   obtain ⟨⟨y, v⟩, h', rfl⟩ := Option.map_eq_some'.1 h
   exact ⟨_, findEntry?_some_mem_toList h', findEntry?_some_eq_eq h'⟩
 
-theorem mem_toList_unique [@TransCmp α cmp] {t : RBMap α β cmp}
-    (hx : x ∈ toList t) (hy : y ∈ toList t) (e : cmp x.1 y.1 = .eq) : x = y :=
-  RBSet.mem_toList_unique hx hy e
+theorem mem_toList_unique [Ord α] [@TransCmp α compare] {t : RBMap α β}
+    (hx : x ∈ toList t) (hy : y ∈ toList t) (e : compare x.1 y.1 = .eq) : x = y :=
+  @RBSet.mem_toList_unique _ _ _ _ (Ordering.instTransCmpByKeyOrd Prod.fst) t hx hy e
 
 /-- A "representable cut" is one generated by `cmp a` for some `a`. This is always a valid cut. -/
-instance (cmp) (a : α) : IsStrictCut cmp (cmp a) where
+instance [Ord α] (a : α) : IsStrictCut compare (compare a) where
   le_lt_trans h₁ h₂ := TransCmp.lt_le_trans h₂ h₁
   le_gt_trans h₁ := Decidable.not_imp_not.1 (TransCmp.le_trans · h₁)
   exact h := (TransCmp.cmp_congr_left h).symm
 
-instance (f : α → β) (cmp) [@TransCmp β cmp] (x : β) :
-    IsStrictCut (Ordering.byKey f cmp) (fun y => cmp x (f y)) where
+instance [Ord β] (f : α → β) [@TransCmp β compare] (x : β) :
+    IsStrictCut (Ordering.byKey f) (fun y => compare x (f y)) where
   le_lt_trans h₁ h₂ := TransCmp.lt_le_trans h₂ h₁
   le_gt_trans h₁ := Decidable.not_imp_not.1 (TransCmp.le_trans · h₁)
   exact h := (TransCmp.cmp_congr_left h).symm
 
-theorem findEntry?_some [@TransCmp α cmp] {t : RBMap α β cmp} :
-    t.findEntry? x = some y ↔ y ∈ toList t ∧ cmp x y.1 = .eq := RBSet.findP?_some
+theorem findEntry?_some [Ord α] [@TransCmp α compare] {t : RBMap α β} :
+    t.findEntry? x = some y ↔ y ∈ toList t ∧ compare x y.1 = .eq :=
+  @RBSet.findP?_some _ _ _ _ (Ordering.instTransCmpByKeyOrd Prod.fst)
+    (instIsStrictCutByKeyCompareOfTransCmp Prod.fst x) t
 
-theorem find?_some [@TransCmp α cmp] {t : RBMap α β cmp} :
-    t.find? x = some v ↔ ∃ y, (y, v) ∈ toList t ∧ cmp x y = .eq := by
+theorem find?_some [Ord α] [@TransCmp α compare] {t : RBMap α β} :
+    t.find? x = some v ↔ ∃ y, (y, v) ∈ toList t ∧ compare x y = .eq := by
   simp only [find?, findEntry?_some, Option.map_eq_some']; constructor
   · rintro ⟨_, h, rfl⟩; exact ⟨_, h⟩
   · rintro ⟨b, h⟩; exact ⟨_, h, rfl⟩
 
-theorem contains_iff_findEntry? {t : RBMap α β cmp} :
+theorem contains_iff_findEntry? [Ord α] {t : RBMap α β} :
     t.contains x ↔ ∃ v, t.findEntry? x = some v := Option.isSome_iff_exists
 
-theorem contains_iff_find? {t : RBMap α β cmp} :
+theorem contains_iff_find? [Ord α] {t : RBMap α β} :
     t.contains x ↔ ∃ v, t.find? x = some v := by
   simp only [contains_iff_findEntry?, Prod.exists, find?, Option.map_eq_some', and_comm,
     exists_eq_left]
   rw [exists_comm]
 
-theorem size_eq (t : RBMap α β cmp) : t.size = t.toList.length := RBNode.size_eq
+theorem size_eq [Ord α] (t : RBMap α β) : t.size = t.toList.length := RBNode.size_eq
 
-theorem mem_toList_insert_self (v) (t : RBMap α β cmp) : (k, v) ∈ toList (t.insert k v) :=
+theorem mem_toList_insert_self [Ord α] (v) (t : RBMap α β) : (k, v) ∈ toList (t.insert k v) :=
   RBSet.mem_toList_insert_self ..
 
-theorem mem_toList_insert_of_mem (v) {t : RBMap α β cmp} (h : y ∈ toList t) :
-    y ∈ toList (t.insert k v) ∨ cmp k y.1 = .eq := RBSet.mem_toList_insert_of_mem _ h
+theorem mem_toList_insert_of_mem [Ord α] (v) {t : RBMap α β} (h : y ∈ toList t) :
+    y ∈ toList (t.insert k v) ∨ compare k y.1 = .eq := RBSet.mem_toList_insert_of_mem _ h
 
-theorem mem_toList_insert [@TransCmp α cmp] {t : RBMap α β cmp} :
+theorem mem_toList_insert [Ord α] [@TransCmp α compare] {t : RBMap α β} :
     y ∈ toList (t.insert k v) ↔ (y ∈ toList t ∧ t.findEntry? k ≠ some y) ∨ y = (k, v) :=
-  RBSet.mem_toList_insert
+  @RBSet.mem_toList_insert _ _ _ _ (Ordering.instTransCmpByKeyOrd Prod.fst) t
 
-theorem findEntry?_congr [@TransCmp α cmp] (t : RBMap α β cmp) (h : cmp k₁ k₂ = .eq) :
+theorem findEntry?_congr [Ord α] [@TransCmp α compare] (t : RBMap α β) (h : compare k₁ k₂ = .eq) :
     t.findEntry? k₁ = t.findEntry? k₂ := by simp [findEntry?, TransCmp.cmp_congr_left' h]
 
-theorem find?_congr [@TransCmp α cmp] (t : RBMap α β cmp) (h : cmp k₁ k₂ = .eq) :
+theorem find?_congr [Ord α] [@TransCmp α compare] (t : RBMap α β) (h : compare k₁ k₂ = .eq) :
     t.find? k₁ = t.find? k₂ := by simp [find?, findEntry?_congr _ h]
 
-theorem findEntry?_insert_of_eq [@TransCmp α cmp] (t : RBMap α β cmp) (h : cmp k' k = .eq) :
-    (t.insert k v).findEntry? k' = some (k, v) := RBSet.findP?_insert_of_eq _ h
+theorem findEntry?_insert_of_eq [Ord α] [@TransCmp α compare] (t : RBMap α β) (h : compare k' k = .eq) :
+    (t.insert k v).findEntry? k' = some (k, v) :=
+  @RBSet.findP?_insert_of_eq _ _ _ _ (Ordering.instTransCmpByKeyOrd Prod.fst)
+    (instIsStrictCutByKeyCompareOfTransCmp Prod.fst k') t h
 
-theorem find?_insert_of_eq [@TransCmp α cmp] (t : RBMap α β cmp) (h : cmp k' k = .eq) :
+theorem find?_insert_of_eq [Ord α] [@TransCmp α compare] (t : RBMap α β) (h : compare k' k = .eq) :
     (t.insert k v).find? k' = some v := by rw [find?, findEntry?_insert_of_eq _ h]; rfl
 
-theorem findEntry?_insert_of_ne [@TransCmp α cmp] (t : RBMap α β cmp) (h : cmp k' k ≠ .eq) :
-    (t.insert k v).findEntry? k' = t.findEntry? k' := RBSet.findP?_insert_of_ne _ h
+theorem findEntry?_insert_of_ne [Ord α] [@TransCmp α compare] (t : RBMap α β) (h : compare k' k ≠ .eq) :
+    (t.insert k v).findEntry? k' = t.findEntry? k' :=
+  @RBSet.findP?_insert_of_ne _ _ _ _ (Ordering.instTransCmpByKeyOrd Prod.fst)
+    (instIsStrictCutByKeyCompareOfTransCmp Prod.fst k') t h
 
-theorem find?_insert_of_ne [@TransCmp α cmp] (t : RBMap α β cmp) (h : cmp k' k ≠ .eq) :
+theorem find?_insert_of_ne [Ord α] [@TransCmp α compare] (t : RBMap α β) (h : compare k' k ≠ .eq) :
     (t.insert k v).find? k' = t.find? k' := by simp [find?, findEntry?_insert_of_ne _ h]
 
-theorem findEntry?_insert [@TransCmp α cmp] (t : RBMap α β cmp) (k v k') :
-    (t.insert k v).findEntry? k' = if cmp k' k = .eq then some (k, v) else t.findEntry? k' :=
-  RBSet.findP?_insert ..
+theorem findEntry?_insert [Ord α] [@TransCmp α compare] (t : RBMap α β) (k v k') :
+    (t.insert k v).findEntry? k' = if compare k' k = .eq then some (k, v) else t.findEntry? k' :=
+  @RBSet.findP?_insert _ _ (Ordering.instTransCmpByKeyOrd Prod.fst) t _ _
+    (instIsStrictCutByKeyCompareOfTransCmp Prod.fst k')
 
-theorem find?_insert [@TransCmp α cmp] (t : RBMap α β cmp) (k v k') :
-    (t.insert k v).find? k' = if cmp k' k = .eq then some v else t.find? k' := by
+theorem find?_insert [Ord α] [@TransCmp α compare] (t : RBMap α β) (k v k') :
+    (t.insert k v).find? k' = if compare k' k = .eq then some v else t.find? k' := by
   split <;> [exact find?_insert_of_eq t ‹_›; exact find?_insert_of_ne t ‹_›]
 
 end RBMap
