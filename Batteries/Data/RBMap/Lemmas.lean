@@ -603,16 +603,16 @@ attribute [simp] RootOrdered Ordered
 /-- Wraps a list of elements with the left and right elements of the path. -/
 abbrev withList (p : Path α) (l : List α) : List α := p.listL ++ l ++ p.listR
 
-theorem rootOrdered_iff {p : Path α} (hp : p.Ordered cmp) :
-    p.RootOrdered cmp v ↔ (∀ a ∈ p.listL, cmpLT cmp a v) ∧ (∀ a ∈ p.listR, cmpLT cmp v a) := by
+theorem rootOrdered_iff [Ord α] {p : Path α} (hp : p.Ordered) :
+    p.RootOrdered v ↔ (∀ a ∈ p.listL, cmpLT compare a v) ∧ (∀ a ∈ p.listR, cmpLT compare v a) := by
   induction p with
     (simp [All_def] at hp; simp [*, and_assoc, and_left_comm, and_comm, or_imp, forall_and])
   | left _ _ x _ ih => exact fun vx _ _ _ ha => vx.trans (hp.2.1 _ ha)
   | right _ _ x _ ih => exact fun xv _ _ _ ha => (hp.2.1 _ ha).trans xv
 
-theorem ordered_iff {p : Path α} :
-    p.Ordered cmp ↔ p.listL.Pairwise (cmpLT cmp) ∧ p.listR.Pairwise (cmpLT cmp) ∧
-      ∀ x ∈ p.listL, ∀ y ∈ p.listR, cmpLT cmp x y := by
+theorem ordered_iff [Ord α] {p : Path α} :
+    p.Ordered ↔ p.listL.Pairwise (cmpLT compare) ∧ p.listR.Pairwise (cmpLT compare) ∧
+      ∀ x ∈ p.listL, ∀ y ∈ p.listR, cmpLT compare x y := by
   induction p with
   | root => simp
   | left _ _ x _ ih | right _ _ x _ ih => ?_
@@ -664,15 +664,15 @@ protected theorem Balanced.insert {path : Path α} (hp : path.Balanced c₀ n₀
   | .red ha hb => ⟨_, _, hp.fill (.red ha hb)⟩
   | .black ha hb => ⟨_, _, hp.fill (.black ha hb)⟩
 
-theorem Ordered.insert : ∀ {path : Path α} {t : RBNode α},
-    path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → path.RootOrdered cmp v →
-    t.OnRoot (cmpEq cmp v) → (path.insert t v).Ordered cmp
+theorem Ordered.insert [Ord α] : ∀ {path : Path α} {t : RBNode α},
+    path.Ordered → t.Ordered compare → t.All path.RootOrdered → path.RootOrdered v →
+    t.OnRoot (cmpEq compare v) → (path.insert t v).Ordered compare
   | _, nil, hp, _, _, vp, _ => hp.insertNew vp
   | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩, vp, xv => Ordered.fill.2
     ⟨hp, ⟨ax.imp xv.lt_congr_right.2, xb.imp xv.lt_congr_left.2, ha, hb⟩, vp, ap, bp⟩
 
-theorem Ordered.erase : ∀ {path : Path α} {t : RBNode α},
-    path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → (path.erase t).Ordered cmp
+theorem Ordered.erase [Ord α] : ∀ {path : Path α} {t : RBNode α},
+    path.Ordered → t.Ordered compare → t.All path.RootOrdered → (path.erase t).Ordered compare
   | _, nil, hp, ht, tp => Ordered.fill.2 ⟨hp, ht, tp⟩
   | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩ => hp.del (ha.append ax xb hb) (ap.append bp)
 

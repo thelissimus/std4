@@ -145,39 +145,38 @@ theorem zoom_zoomed₂ (e : zoom cut t path = (t', path'))
     · intro e; cases e; exact hp
 
 /--
-`path.RootOrdered cmp v` is true if `v` would be able to fit into the hole
+`path.RootOrdered v` is true if `v` would be able to fit into the hole
 without violating the ordering invariant.
 -/
-def RootOrdered (cmp : α → α → Ordering) : Path α → α → Prop
+def RootOrdered [Ord α] : Path α → α → Prop
   | .root, _ => True
-  | .left _ parent x _, v => cmpLT cmp v x ∧ parent.RootOrdered cmp v
-  | .right _ _ x parent, v => cmpLT cmp x v ∧ parent.RootOrdered cmp v
+  | .left _ parent x _, v => cmpLT compare v x ∧ parent.RootOrdered v
+  | .right _ _ x parent, v => cmpLT compare x v ∧ parent.RootOrdered v
 
-theorem _root_.Batteries.RBNode.cmpEq.RootOrdered_congr
-    {cmp : α → α → Ordering} (h : cmpEq cmp a b) :
-    ∀ {t : Path α}, t.RootOrdered cmp a ↔ t.RootOrdered cmp b
+theorem _root_.Batteries.RBNode.cmpEq.RootOrdered_congr [Ord α] (h : cmpEq compare a b) :
+    ∀ {t : Path α}, t.RootOrdered a ↔ t.RootOrdered b
   | .root => .rfl
   | .left .. => and_congr h.lt_congr_left h.RootOrdered_congr
   | .right .. => and_congr h.lt_congr_right h.RootOrdered_congr
 
-theorem Zoomed.toRootOrdered {cmp} :
-    ∀ {path : Path α}, path.Zoomed (cmp v) → path.RootOrdered cmp v
+theorem Zoomed.toRootOrdered [Ord α] :
+    ∀ {path : Path α}, path.Zoomed (compare v) → path.RootOrdered v
   | .root, h => h
   | .left .., ⟨h, hp⟩ => ⟨⟨h⟩, hp.toRootOrdered⟩
   | .right .., ⟨h, hp⟩ => ⟨⟨OrientedCmp.cmp_eq_gt.1 h⟩, hp.toRootOrdered⟩
 
 /-- The ordering invariant for a `Path`. -/
-def Ordered (cmp : α → α → Ordering) : Path α → Prop
+def Ordered [Ord α] : Path α → Prop
   | .root => True
-  | .left _ parent x b => parent.Ordered cmp ∧
-    b.All (cmpLT cmp x ·) ∧ parent.RootOrdered cmp x ∧
-    b.All (parent.RootOrdered cmp) ∧ b.Ordered cmp
-  | .right _ a x parent => parent.Ordered cmp ∧
-    a.All (cmpLT cmp · x) ∧ parent.RootOrdered cmp x ∧
-    a.All (parent.RootOrdered cmp) ∧ a.Ordered cmp
+  | .left _ parent x b => parent.Ordered ∧
+    b.All (cmpLT compare x ·) ∧ parent.RootOrdered x ∧
+    b.All parent.RootOrdered ∧ b.Ordered compare
+  | .right _ a x parent => parent.Ordered ∧
+    a.All (cmpLT compare · x) ∧ parent.RootOrdered x ∧
+    a.All parent.RootOrdered ∧ a.Ordered compare
 
-protected theorem Ordered.fill : ∀ {path : Path α} {t},
-    (path.fill t).Ordered cmp ↔ path.Ordered cmp ∧ t.Ordered cmp ∧ t.All (path.RootOrdered cmp)
+protected theorem Ordered.fill [Ord α] : ∀ {path : Path α} {t},
+    (path.fill t).Ordered compare ↔ path.Ordered ∧ t.Ordered compare ∧ t.All path.RootOrdered
   | .root, _ => ⟨fun H => ⟨⟨⟩, H, .trivial ⟨⟩⟩, (·.2.1)⟩
   | .left .., _ => by
     simp [Ordered.fill, RBNode.Ordered, Ordered, RootOrdered, All_and]
@@ -190,20 +189,20 @@ protected theorem Ordered.fill : ∀ {path : Path α} {t},
       fun ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩ => ⟨⟨hp, ax, xp, ap, ha⟩, hb, ⟨xb, bp⟩⟩,
       fun ⟨⟨hp, ax, xp, ap, ha⟩, hb, ⟨xb, bp⟩⟩ => ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩⟩
 
-theorem _root_.Batteries.RBNode.Ordered.zoom' {t : RBNode α} {path : Path α}
-    (ht : t.Ordered cmp) (hp : path.Ordered cmp) (tp : t.All (path.RootOrdered cmp))
+theorem _root_.Batteries.RBNode.Ordered.zoom' [Ord α] {t : RBNode α} {path : Path α}
+    (ht : t.Ordered compare) (hp : path.Ordered) (tp : t.All path.RootOrdered)
     (pz : path.Zoomed cut) (eq : t.zoom cut path = (t', path')) :
-    t'.Ordered cmp ∧ path'.Ordered cmp ∧ t'.All (path'.RootOrdered cmp) ∧ path'.Zoomed cut :=
+    t'.Ordered compare ∧ path'.Ordered ∧ t'.All path'.RootOrdered ∧ path'.Zoomed cut :=
   have ⟨hp', ht', tp'⟩ := Ordered.fill.1 <| zoom_fill eq ▸ Ordered.fill.2 ⟨hp, ht, tp⟩
   ⟨ht', hp', tp', zoom_zoomed₂ eq pz⟩
 
-theorem _root_.Batteries.RBNode.Ordered.zoom {t : RBNode α}
-    (ht : t.Ordered cmp) (eq : t.zoom cut = (t', path')) :
-    t'.Ordered cmp ∧ path'.Ordered cmp ∧ t'.All (path'.RootOrdered cmp) ∧ path'.Zoomed cut :=
+theorem _root_.Batteries.RBNode.Ordered.zoom [Ord α] {t : RBNode α}
+    (ht : t.Ordered compare) (eq : t.zoom cut = (t', path')) :
+    t'.Ordered compare ∧ path'.Ordered ∧ t'.All path'.RootOrdered ∧ path'.Zoomed cut :=
   ht.zoom' (path := .root) ⟨⟩ (.trivial ⟨⟩) ⟨⟩ eq
 
-theorem Ordered.ins : ∀ {path : Path α} {t : RBNode α},
-    t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.ins t).Ordered cmp
+theorem Ordered.ins [Ord α] : ∀ {path : Path α} {t : RBNode α},
+    t.Ordered compare → path.Ordered → t.All path.RootOrdered → (path.ins t).Ordered compare
   | .root, _, ht, _, _ => Ordered.setBlack.2 ht
   | .left red parent x b, a, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
     unfold Path.ins
@@ -222,12 +221,12 @@ theorem Ordered.ins : ∀ {path : Path α} {t : RBNode α},
     have ⟨xb, bp⟩ := All_and.1 H
     exact hp.ins (ha.balance2 ax xb hb) (balance2_All.2 ⟨xp, ap, bp⟩)
 
-theorem Ordered.insertNew {path : Path α} (hp : path.Ordered cmp) (vp : path.RootOrdered cmp v) :
-    (path.insertNew v).Ordered cmp :=
+theorem Ordered.insertNew [Ord α] {path : Path α} (hp : path.Ordered) (vp : path.RootOrdered v) :
+    (path.insertNew v).Ordered compare :=
   hp.ins ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩ ⟨vp, ⟨⟩, ⟨⟩⟩
 
-theorem Ordered.del : ∀ {path : Path α} {t : RBNode α} {c},
-    t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.del t c).Ordered cmp
+theorem Ordered.del [Ord α] : ∀ {path : Path α} {t : RBNode α} {c},
+    t.Ordered compare → path.Ordered → t.All path.RootOrdered → (path.del t c).Ordered compare
   | .root, _, _, ht, _, _ => Ordered.setBlack.2 ht
   | .left _ parent x b, a, red, ha, ⟨hp, xb, xp, bp, hb⟩, H => by
     unfold Path.del
@@ -251,10 +250,10 @@ end Path
 /-! ## alter -/
 
 /-- The `alter` function preserves the ordering invariants. -/
-protected theorem Ordered.alter {t : RBNode α}
+protected theorem Ordered.alter [Ord α] {t : RBNode α}
     (H : ∀ {x t' p}, t.zoom cut = (t', p) → f t'.root? = some x →
-      p.RootOrdered cmp x ∧ t'.OnRoot (cmpEq cmp x))
-    (h : t.Ordered cmp) : (alter cut f t).Ordered cmp := by
+      p.RootOrdered x ∧ t'.OnRoot (cmpEq compare x))
+    (h : t.Ordered compare) : (alter cut f t).Ordered compare := by
   simp [alter]; split
   · next path eq =>
     have ⟨_, hp, _, _⟩ := h.zoom eq; split
@@ -291,9 +290,9 @@ theorem modify_eq_alter (t : RBNode α) : t.modify cut f = t.alter cut (.map f) 
   simp [modify, alter]
 
 /-- The `modify` function preserves the ordering invariants. -/
-protected theorem Ordered.modify {t : RBNode α}
-    (H : (t.zoom cut).1.OnRoot fun x => cmpEq cmp (f x) x)
-    (h : t.Ordered cmp) : (modify cut f t).Ordered cmp :=
+protected theorem Ordered.modify [Ord α] {t : RBNode α}
+    (H : (t.zoom cut).1.OnRoot fun x => cmpEq compare (f x) x)
+    (h : t.Ordered compare) : (modify cut f t).Ordered compare :=
   modify_eq_alter _ ▸ h.alter @fun
     | _, .node .., _, eq, rfl => by
       rw [eq] at H; exact ⟨H.RootOrdered_congr.2 (h.zoom eq).2.2.1.1, H⟩
@@ -304,7 +303,7 @@ protected theorem Balanced.modify {t : RBNode α}
 
 theorem WF.alter [Ord α] {t : RBNode α}
     (H : ∀ {x t' p}, t.zoom cut = (t', p) → f t'.root? = some x →
-      p.RootOrdered compare x ∧ t'.OnRoot (cmpEq compare x))
+      p.RootOrdered x ∧ t'.OnRoot (cmpEq compare x))
     (h : WF t) : WF (alter cut f t) :=
   let ⟨h₁, _, _, h₂⟩ := h.out; WF_iff.2 ⟨h₁.alter H, h₂.alter⟩
 
