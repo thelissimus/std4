@@ -600,16 +600,16 @@ The well-formedness invariant for a red-black tree. The first constructor is the
 and the others allow us to "cheat" in this file and define `insert` and `erase`,
 which have more complex proofs that are delayed to `Batteries.Data.RBMap.Lemmas`.
 -/
-inductive WF (cmp : α → α → Ordering) : RBNode α → Prop
+inductive WF [Ord α] : RBNode α → Prop
   /-- The actual well-formedness invariant: a red-black tree has the
   ordering and balance invariants. -/
-  | mk : t.Ordered cmp → t.Balanced c n → WF cmp t
+  | mk : t.Ordered compare → t.Balanced c n → WF t
   /-- Inserting into a well-formed tree yields another well-formed tree.
   (See `Ordered.insert` and `Balanced.insert` for the actual proofs.) -/
-  | insert : WF cmp t → WF cmp (t.insert cmp a)
+  | insert : WF t → WF (t.insert compare a)
   /-- Erasing from a well-formed tree yields another well-formed tree.
   (See `Ordered.erase` and `Balanced.erase` for the actual proofs.) -/
-  | erase : WF cmp t → WF cmp (t.erase cut)
+  | erase : WF t → WF (t.erase cut)
 
 end RBNode
 
@@ -620,7 +620,7 @@ An `RBSet` is a self-balancing binary search tree.
 The `cmp` function is the comparator that will be used for performing searches;
 it should satisfy the requirements of `TransCmp` for it to have sensible behavior.
 -/
-def RBSet (α : Type u) [Ord α] : Type u := {t : RBNode α // t.WF compare}
+def RBSet (α : Type u) [Ord α] : Type u := {t : RBNode α // t.WF}
 
 /-- `O(1)`. Construct a new empty tree. -/
 @[inline] def mkRBSet (α : Type u) [Ord α] : RBSet α := ⟨.nil, .mk ⟨⟩ .nil⟩
@@ -814,7 +814,7 @@ def size [Ord α] (m : RBSet α) : Nat := m.1.size
 /-- The predicate asserting that the result of `modifyP` is safe to construct. -/
 class ModifyWF [Ord α] (t : RBSet α) (cut : α → Ordering) (f : α → α) : Prop where
   /-- The resulting tree is well formed. -/
-  wf : (t.1.modify cut f).WF compare
+  wf : (t.1.modify cut f).WF
 
 /--
 `O(log n)`. In-place replace an element found by `cut`.
@@ -830,7 +830,7 @@ def modifyP [Ord α] (t : RBSet α) (cut : α → Ordering) (f : α → α)
 /-- The predicate asserting that the result of `alterP` is safe to construct. -/
 class AlterWF [Ord α] (t : RBSet α) (cut : α → Ordering) (f : Option α → Option α) : Prop where
   /-- The resulting tree is well formed. -/
-  wf : (t.1.alter cut f).WF compare
+  wf : (t.1.alter cut f).WF
 
 /--
 `O(log n)`. `alterP cut f t` simultaneously handles inserting, erasing and replacing an element

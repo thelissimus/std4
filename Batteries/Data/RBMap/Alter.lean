@@ -302,15 +302,15 @@ protected theorem Ordered.modify {t : RBNode α}
 protected theorem Balanced.modify {t : RBNode α}
     (h : t.Balanced c n) : ∃ c n, (t.modify cut f).Balanced c n := modify_eq_alter _ ▸ h.alter
 
-theorem WF.alter {t : RBNode α}
+theorem WF.alter [Ord α] {t : RBNode α}
     (H : ∀ {x t' p}, t.zoom cut = (t', p) → f t'.root? = some x →
-      p.RootOrdered cmp x ∧ t'.OnRoot (cmpEq cmp x))
-    (h : WF cmp t) : WF cmp (alter cut f t) :=
+      p.RootOrdered compare x ∧ t'.OnRoot (cmpEq compare x))
+    (h : WF t) : WF (alter cut f t) :=
   let ⟨h₁, _, _, h₂⟩ := h.out; WF_iff.2 ⟨h₁.alter H, h₂.alter⟩
 
-theorem WF.modify {t : RBNode α}
-    (H : (t.zoom cut).1.OnRoot fun x => cmpEq cmp (f x) x)
-    (h : WF cmp t) : WF cmp (t.modify cut f) :=
+theorem WF.modify [Ord α] {t : RBNode α}
+    (H : (t.zoom cut).1.OnRoot fun x => cmpEq compare (f x) x)
+    (h : WF t) : WF (t.modify cut f) :=
   let ⟨h₁, _, _, h₂⟩ := h.out; WF_iff.2 ⟨h₁.modify H, h₂.modify⟩
 
 theorem find?_eq_zoom : ∀ {t : RBNode α} (p := .root), t.find? cut = (t.zoom cut p).1.root?

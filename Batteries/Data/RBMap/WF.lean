@@ -505,7 +505,7 @@ protected theorem Balanced.erase {t : RBNode α}
   have ⟨_, h⟩ := h.del.redred; h.setBlack
 
 /-- The well-formedness invariant implies the ordering and balance properties. -/
-theorem WF.out {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Balanced c n := by
+theorem WF.out [Ord α] {t : RBNode α} (h : t.WF) : t.Ordered compare ∧ ∃ c n, t.Balanced c n := by
   induction h with
   | mk o h => exact ⟨o, _, _, h⟩
   | insert _ ih => have ⟨o, _, _, h⟩ := ih; exact ⟨o.insert, h.insert⟩
@@ -515,7 +515,7 @@ theorem WF.out {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Bal
 The well-formedness invariant for a red-black tree is exactly the `mk` constructor,
 because the other constructors of `WF` are redundant.
 -/
-@[simp] theorem WF_iff {t : RBNode α} : t.WF cmp ↔ t.Ordered cmp ∧ ∃ c n, t.Balanced c n :=
+@[simp] theorem WF_iff [Ord α] {t : RBNode α} : t.WF ↔ t.Ordered compare ∧ ∃ c n, t.Balanced c n :=
   ⟨fun h => h.out, fun ⟨o, _, _, h⟩ => .mk o h⟩
 
 /-- The `map` function preserves the balance invariants. -/

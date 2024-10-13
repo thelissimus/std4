@@ -81,5 +81,5 @@ theorem Balanced.depth_bound (h : @Balanced α t c n) : t.depth ≤ 2 * (t.size 
 A well formed tree has `t.depth ∈ O(log t.size)`, that is, it is well balanced.
 This justifies the `O(log n)` bounds on most searching operations of `RBSet`.
 -/
-theorem WF.depth_bound {t : RBNode α} (h : t.WF cmp) : t.depth ≤ 2 * (t.size + 1).log2 :=
+theorem WF.depth_bound [Ord α] {t : RBNode α} (h : t.WF) : t.depth ≤ 2 * (t.size + 1).log2 :=
   let ⟨_, _, h⟩ := h.out.2; h.depth_bound
