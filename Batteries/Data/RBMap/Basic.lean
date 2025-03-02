@@ -198,7 +198,7 @@ instance : Membership α (RBNode α) where
 def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
 
 /-- True if `x` is equivalent to an element of `t`. -/
-@[reducible] def Mem (cmp : α → α → Ordering) (x : α) (t : RBNode α) : Prop := MemP (cmp x) t
+@[reducible] def Mem [Ord α] (x : α) (t : RBNode α) : Prop := MemP (compare x) t
 
 -- These instances are put in a special namespace because they are usually not what users want
 -- when deciding membership in a RBSet, since this does a naive linear search through the tree.
@@ -209,8 +209,8 @@ def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
 @[nolint docBlame] scoped instance Slow.instDecidableMemP {t : RBNode α} :
     Decidable (MemP cut t) := inferInstanceAs (Decidable (Any ..))
 
-@[nolint docBlame] scoped instance Slow.instDecidableMem {t : RBNode α} :
-    Decidable (Mem cmp x t) := inferInstanceAs (Decidable (Any ..))
+@[nolint docBlame] scoped instance Slow.instDecidableMem [Ord α] {t : RBNode α} :
+    Decidable (Mem x t) := inferInstanceAs (Decidable (Any ..))
 
 /--
 Asserts that `t₁` and `t₂` have the same number of elements in the same order,

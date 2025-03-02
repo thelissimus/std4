@@ -37,10 +37,10 @@ theorem Any_def {t : RBNode α} : t.Any p ↔ ∃ x ∈ t, p x := by
 
 theorem memP_def : MemP cut t ↔ ∃ x ∈ t, cut x = .eq := Any_def
 
-theorem mem_def : Mem cmp x t ↔ ∃ y ∈ t, cmp x y = .eq := Any_def
+theorem mem_def [Ord α] {x : α} : Mem x t ↔ ∃ y ∈ t, compare x y = .eq := Any_def
 
-theorem mem_congr [@TransCmp α cmp] {t : RBNode α} (h : cmp x y = .eq) :
-    Mem cmp x t ↔ Mem cmp y t := by simp [Mem, TransCmp.cmp_congr_left' h]
+theorem mem_congr [Ord α] [@TransCmp α compare] {t : RBNode α} (h : compare x y = .eq) :
+    Mem x t ↔ Mem y t := by simp [Mem, TransCmp.cmp_congr_left' h]
 
 theorem isOrdered_iff' [@TransCmp α cmp] {t : RBNode α} :
     isOrdered cmp t L R ↔
@@ -290,8 +290,8 @@ theorem size_eq {t : RBNode α} : t.size = t.toList.length := by
 @[simp] theorem memP_reverse {t : RBNode α} : MemP cut t.reverse ↔ MemP (cut · |>.swap) t := by
   simp [MemP]
 
-theorem Mem_reverse [@OrientedCmp α cmp] {t : RBNode α} :
-    Mem cmp x t.reverse ↔ Mem (flip cmp) x t := by
+theorem Mem_reverse [Ord α] [@OrientedCmp α compare] {t : RBNode α} :
+    Mem x t.reverse ↔ @Mem _ ⟨flip compare⟩ x t := by
   simp [Mem]; apply Iff.of_eq; congr; funext x; rw [OrientedCmp.symm]; rfl
 
 section find?
@@ -830,13 +830,13 @@ namespace RBSet
 
 theorem mem_toList {t : RBSet α cmp} : x ∈ toList t ↔ x ∈ t.1 := RBNode.mem_toList
 
-theorem mem_congr [@TransCmp α cmp] {t : RBSet α cmp} (h : cmp x y = .eq) : x ∈ t ↔ y ∈ t :=
+theorem mem_congr [Ord α] [@TransCmp α compare] {t : RBSet α compare} (h : compare x y = .eq) : x ∈ t ↔ y ∈ t :=
   RBNode.mem_congr h
 
-theorem mem_iff_mem_toList {t : RBSet α cmp} : x ∈ t ↔ ∃ y ∈ toList t, cmp x y = .eq :=
+theorem mem_iff_mem_toList [Ord α] {t : RBSet α compare} : x ∈ t ↔ ∃ y ∈ toList t, compare x y = .eq :=
   RBNode.mem_def.trans <| by simp [mem_toList]
 
-theorem mem_of_mem_toList [@OrientedCmp α cmp] {t : RBSet α cmp} (h : x ∈ toList t) : x ∈ t :=
+theorem mem_of_mem_toList [Ord α] [@OrientedCmp α compare] {t : RBSet α compare} (h : x ∈ toList t) : x ∈ t :=
   mem_iff_mem_toList.2 ⟨_, h, OrientedCmp.cmp_refl⟩
 
 theorem foldl_eq_foldl_toList {t : RBSet α cmp} : t.foldl f init = t.toList.foldl f init :=
@@ -910,10 +910,10 @@ theorem size_eq (t : RBSet α cmp) : t.size = t.toList.length := RBNode.size_eq
 theorem mem_toList_insert_self (v) (t : RBSet α cmp) : v ∈ toList (t.insert v) :=
   let ⟨_, _, h⟩ := t.2.out.2; mem_toList.2 (RBNode.mem_insert_self h)
 
-theorem mem_insert_self [@OrientedCmp α cmp] (v) (t : RBSet α cmp) : v ∈ t.insert v :=
+theorem mem_insert_self [Ord α] [@OrientedCmp α compare] (v) (t : RBSet α compare) : v ∈ t.insert v :=
   mem_of_mem_toList <| mem_toList_insert_self v t
 
-theorem mem_insert_of_eq [@TransCmp α cmp] (t : RBSet α cmp) (h : cmp v v' = .eq) :
+theorem mem_insert_of_eq [Ord α] [@TransCmp α compare] (t : RBSet α compare) (h : compare v v' = .eq) :
     v' ∈ t.insert v := (mem_congr h).1 (mem_insert_self ..)
 
 theorem mem_toList_insert_of_mem (v) {t : RBSet α cmp} (h : v' ∈ toList t) :
@@ -921,13 +921,13 @@ theorem mem_toList_insert_of_mem (v) {t : RBSet α cmp} (h : v' ∈ toList t) :
   let ⟨_, _, ht⟩ := t.2.out.2
   .imp_left mem_toList.2 <| RBNode.mem_insert_of_mem ht <| mem_toList.1 h
 
-theorem mem_insert_of_mem_toList [@OrientedCmp α cmp] (v) {t : RBSet α cmp} (h : v' ∈ toList t) :
+theorem mem_insert_of_mem_toList [Ord α] [@OrientedCmp α compare] (v) {t : RBSet α compare} (h : v' ∈ toList t) :
     v' ∈ t.insert v :=
   match mem_toList_insert_of_mem v h with
   | .inl h' => mem_of_mem_toList h'
   | .inr h' => mem_iff_mem_toList.2 ⟨_, mem_toList_insert_self .., OrientedCmp.cmp_eq_eq_symm.1 h'⟩
 
-theorem mem_insert_of_mem [@TransCmp α cmp] (v) {t : RBSet α cmp} (h : v' ∈ t) : v' ∈ t.insert v :=
+theorem mem_insert_of_mem [Ord α] [@TransCmp α compare] (v) {t : RBSet α compare} (h : v' ∈ t) : v' ∈ t.insert v :=
   let ⟨_, h₁, h₂⟩ := mem_iff_mem_toList.1 h
   (mem_congr h₂).2 (mem_insert_of_mem_toList v h₁)
 
@@ -936,8 +936,8 @@ theorem mem_toList_insert [@TransCmp α cmp] {t : RBSet α cmp} :
   let ⟨ht₁, _, _, ht₂⟩ := t.2.out
   simpa [mem_toList] using RBNode.mem_insert ht₂ ht₁
 
-theorem mem_insert [@TransCmp α cmp] {t : RBSet α cmp} :
-    v' ∈ t.insert v ↔ v' ∈ t ∨ cmp v v' = .eq := by
+theorem mem_insert [Ord α] [@TransCmp α compare] {t : RBSet α compare} :
+    v' ∈ t.insert v ↔ v' ∈ t ∨ compare v v' = .eq := by
   refine ⟨fun h => ?_, fun | .inl h => mem_insert_of_mem _ h | .inr h => mem_insert_of_eq _ h⟩
   let ⟨_, h₁, h₂⟩ := mem_iff_mem_toList.1 h
   match mem_toList_insert.1 h₁ with
@@ -1012,46 +1012,46 @@ theorem lowerBoundP?_mem_toList {t : RBSet α cmp} (h : t.lowerBoundP? cut = som
 theorem lowerBound?_mem_toList {t : RBSet α cmp} (h : t.lowerBound? x = some y) :
     y ∈ t.toList := lowerBoundP?_mem_toList h
 
-theorem upperBoundP?_mem [@OrientedCmp α cmp] {t : RBSet α cmp}
+theorem upperBoundP?_mem [Ord α] [@OrientedCmp α compare] {t : RBSet α compare}
     (h : t.upperBoundP? cut = some x) : x ∈ t := mem_of_mem_toList (upperBoundP?_mem_toList h)
 
-theorem lowerBoundP?_mem [@OrientedCmp α cmp] {t : RBSet α cmp}
+theorem lowerBoundP?_mem [Ord α] [@OrientedCmp α compare] {t : RBSet α compare}
     (h : t.lowerBoundP? cut = some x) : x ∈ t := mem_of_mem_toList (lowerBoundP?_mem_toList h)
 
-theorem upperBound?_mem [@OrientedCmp α cmp] {t : RBSet α cmp}
+theorem upperBound?_mem [Ord α] [@OrientedCmp α compare] {t : RBSet α compare}
     (h : t.upperBound? x = some y) : y ∈ t := upperBoundP?_mem h
 
-theorem lowerBound?_mem [@OrientedCmp α cmp] {t : RBSet α cmp}
+theorem lowerBound?_mem [Ord α] [@OrientedCmp α compare] {t : RBSet α compare}
     (h : t.lowerBound? x = some y) : y ∈ t := lowerBoundP?_mem h
 
-theorem upperBoundP?_exists {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut] :
+theorem upperBoundP?_exists [Ord α] {t : RBSet α compare} [@TransCmp α compare] [IsCut compare cut] :
     (∃ x, t.upperBoundP? cut = some x) ↔ ∃ x ∈ t, cut x ≠ .gt := by
   simp [upperBoundP?, t.2.out.1.upperBound?_exists, mem_toList, mem_iff_mem_toList]
   exact ⟨
     fun ⟨x, h1, h2⟩ => ⟨x, ⟨x, h1, OrientedCmp.cmp_refl⟩, h2⟩,
     fun ⟨x, ⟨y, h1, h2⟩, eq⟩ => ⟨y, h1, IsCut.congr (cut := cut) h2 ▸ eq⟩⟩
 
-theorem lowerBoundP?_exists {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut] :
+theorem lowerBoundP?_exists [Ord α] {t : RBSet α compare} [@TransCmp α compare] [IsCut compare cut] :
     (∃ x, t.lowerBoundP? cut = some x) ↔ ∃ x ∈ t, cut x ≠ .lt := by
   simp [lowerBoundP?, t.2.out.1.lowerBound?_exists, mem_toList, mem_iff_mem_toList]
   exact ⟨
     fun ⟨x, h1, h2⟩ => ⟨x, ⟨x, h1, OrientedCmp.cmp_refl⟩, h2⟩,
     fun ⟨x, ⟨y, h1, h2⟩, eq⟩ => ⟨y, h1, IsCut.congr (cut := cut) h2 ▸ eq⟩⟩
 
-theorem upperBound?_exists {t : RBSet α cmp} [TransCmp cmp] :
-    (∃ y, t.upperBound? x = some y) ↔ ∃ y ∈ t, cmp x y ≠ .gt := upperBoundP?_exists
+theorem upperBound?_exists [Ord α] {t : RBSet α compare} [@TransCmp α compare] :
+    (∃ y, t.upperBound? x = some y) ↔ ∃ y ∈ t, compare x y ≠ .gt := upperBoundP?_exists
 
-theorem lowerBound?_exists {t : RBSet α cmp} [TransCmp cmp] :
-    (∃ y, t.lowerBound? x = some y) ↔ ∃ y ∈ t, cmp x y ≠ .lt := lowerBoundP?_exists
+theorem lowerBound?_exists [Ord α] {t : RBSet α compare} [@TransCmp α compare] :
+    (∃ y, t.lowerBound? x = some y) ↔ ∃ y ∈ t, compare x y ≠ .lt := lowerBoundP?_exists
 
 /--
 A statement of the least-ness of the result of `upperBoundP?`. If `x` is the return value of
 `upperBoundP?` and it is strictly greater than the cut, then any other `y < x` in the tree is in
 fact strictly less than the cut (so there is no exact match, and nothing closer to the cut).
 -/
-theorem upperBoundP?_least {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut]
+theorem upperBoundP?_least [Ord α] {t : RBSet α compare} [@TransCmp α compare] [IsCut compare cut]
     (H : t.upperBoundP? cut = some x) (hy : y ∈ t)
-    (xy : cmp y x = .lt) (hx : cut x = .lt) : cut y = .gt :=
+    (xy : compare y x = .lt) (hx : cut x = .lt) : cut y = .gt :=
   let ⟨_, h1, h2⟩ := mem_iff_mem_toList.1 hy
   IsCut.congr (cut := cut) h2 ▸
   t.2.out.1.upperBound?_least H (mem_toList.1 h1) (TransCmp.cmp_congr_left h2 ▸ xy) hx
@@ -1061,9 +1061,9 @@ A statement of the greatest-ness of the result of `lowerBoundP?`. If `x` is the 
 `lowerBoundP?` and it is strictly less than the cut, then any other `y > x` in the tree is in fact
 strictly greater than the cut (so there is no exact match, and nothing closer to the cut).
 -/
-theorem lowerBoundP?_greatest {t : RBSet α cmp} [TransCmp cmp] [IsCut cmp cut]
+theorem lowerBoundP?_greatest [Ord α] {t : RBSet α compare} [@TransCmp α compare] [IsCut compare cut]
     (H : t.lowerBoundP? cut = some x) (hy : y ∈ t)
-    (xy : cmp x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
+    (xy : compare x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
   let ⟨_, h1, h2⟩ := mem_iff_mem_toList.1 hy
   IsCut.congr (cut := cut) h2 ▸
   t.2.out.1.lowerBound?_greatest H (mem_toList.1 h1) (TransCmp.cmp_congr_right h2 ▸ xy) hx
@@ -1081,25 +1081,25 @@ theorem mem_iff_lowerBound? {t : RBSet α cmp} [TransCmp cmp] :
     x ∈ t ↔ ∃ y, t.lowerBound? x = some y ∧ cmp x y = .eq := memP_iff_lowerBoundP?
 
 /-- A stronger version of `upperBoundP?_least` that holds when the cut is strict. -/
-theorem lt_upperBoundP? {t : RBSet α cmp} [TransCmp cmp] [IsStrictCut cmp cut]
-    (H : t.upperBoundP? cut = some x) (hy : y ∈ t) : cmp y x = .lt ↔ cut y = .gt :=
+theorem lt_upperBoundP? [Ord α] {t : RBSet α compare} [@TransCmp α compare] [IsStrictCut compare cut]
+    (H : t.upperBoundP? cut = some x) (hy : y ∈ t) : compare y x = .lt ↔ cut y = .gt :=
   let ⟨_, h1, h2⟩ := mem_iff_mem_toList.1 hy
   IsCut.congr (cut := cut) h2 ▸ TransCmp.cmp_congr_left h2 ▸
   t.2.out.1.lt_upperBound? H (mem_toList.1 h1)
 
 /-- A stronger version of `lowerBoundP?_greatest` that holds when the cut is strict. -/
-theorem lowerBoundP?_lt {t : RBSet α cmp} [TransCmp cmp] [IsStrictCut cmp cut]
-    (H : t.lowerBoundP? cut = some x) (hy : y ∈ t) : cmp x y = .lt ↔ cut y = .lt :=
+theorem lowerBoundP?_lt [Ord α] {t : RBSet α compare} [@TransCmp α compare] [IsStrictCut compare cut]
+    (H : t.lowerBoundP? cut = some x) (hy : y ∈ t) : compare x y = .lt ↔ cut y = .lt :=
   let ⟨_, h1, h2⟩ := mem_iff_mem_toList.1 hy
   IsCut.congr (cut := cut) h2 ▸ TransCmp.cmp_congr_right h2 ▸
   t.2.out.1.lowerBound?_lt H (mem_toList.1 h1)
 
-theorem lt_upperBound? {t : RBSet α cmp} [TransCmp cmp]
-    (H : t.upperBound? x = some y) (hz : z ∈ t) : cmp z y = .lt ↔ cmp z x = .lt :=
+theorem lt_upperBound? [Ord α] {t : RBSet α compare} [@TransCmp α compare]
+    (H : t.upperBound? x = some y) (hz : z ∈ t) : compare z y = .lt ↔ compare z x = .lt :=
   (lt_upperBoundP? H hz).trans OrientedCmp.cmp_eq_gt
 
-theorem lowerBound?_lt {t : RBSet α cmp} [TransCmp cmp]
-    (H : t.lowerBound? x = some y) (hz : z ∈ t) : cmp y z = .lt ↔ cmp x z = .lt :=
+theorem lowerBound?_lt [Ord α] {t : RBSet α compare} [@TransCmp α compare]
+    (H : t.lowerBound? x = some y) (hz : z ∈ t) : compare y z = .lt ↔ compare x z = .lt :=
   lowerBoundP?_lt H hz
 
 end RBSet
