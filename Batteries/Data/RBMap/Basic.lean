@@ -563,18 +563,18 @@ Because we do not assume that `cmp` is lawful when stating this property,
 we write it in such a way that if `cmp` is not lawful then the condition holds trivially.
 That way we can prove the ordering invariants without assuming `cmp` is lawful.
 -/
-def Ordered (cmp : α → α → Ordering) : RBNode α → Prop
+def Ordered [Ord α] : RBNode α → Prop
   | nil => True
-  | node _ a x b => a.All (cmpLT cmp · x) ∧ b.All (cmpLT cmp x ·) ∧ a.Ordered cmp ∧ b.Ordered cmp
+  | node _ a x b => a.All (cmpLT compare · x) ∧ b.All (cmpLT compare x ·) ∧ a.Ordered ∧ b.Ordered
 
 -- This is in the Slow namespace because it is `O(n^2)` where a `O(n)` algorithm exists
 -- (see `isOrdered_iff` in `Data.RBMap.Lemmas`). Prefer `isOrdered` or the other instance.
-@[nolint docBlame] scoped instance Slow.instDecidableOrdered (cmp) [TransCmp cmp] :
-    ∀ t : RBNode α, Decidable (Ordered cmp t)
+@[nolint docBlame] scoped instance Slow.instDecidableOrdered [Ord α] [@TransCmp α compare] :
+    ∀ t : RBNode α, Decidable (Ordered t)
   | nil => inferInstanceAs (Decidable True)
   | node _ a _ b =>
-    haveI := instDecidableOrdered cmp a
-    haveI := instDecidableOrdered cmp b
+    haveI := instDecidableOrdered a
+    haveI := instDecidableOrdered b
     inferInstanceAs (Decidable (And ..))
 
 /--
@@ -600,7 +600,7 @@ which have more complex proofs that are delayed to `Batteries.Data.RBMap.Lemmas`
 inductive WF (cmp : α → α → Ordering) : RBNode α → Prop
   /-- The actual well-formedness invariant: a red-black tree has the
   ordering and balance invariants. -/
-  | mk : t.Ordered cmp → t.Balanced c n → WF cmp t
+  | mk : @Ordered α ⟨cmp⟩ t → t.Balanced c n → WF cmp t
   /-- Inserting into a well-formed tree yields another well-formed tree.
   (See `Ordered.insert` and `Balanced.insert` for the actual proofs.) -/
   | insert : WF cmp t → WF cmp (t.insert cmp a)

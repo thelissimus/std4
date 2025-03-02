@@ -47,7 +47,7 @@ theorem isOrdered_iff' [@TransCmp α cmp] {t : RBNode α} :
     (∀ a ∈ L, t.All (cmpLT cmp a ·)) ∧
     (∀ a ∈ R, t.All (cmpLT cmp · a)) ∧
     (∀ a ∈ L, ∀ b ∈ R, cmpLT cmp a b) ∧
-    Ordered cmp t := by
+    @Ordered α ⟨cmp⟩ t := by
   induction t generalizing L R with
   | nil =>
     simp [isOrdered]; split <;> simp [cmpLT_iff]
@@ -65,9 +65,9 @@ theorem isOrdered_iff' [@TransCmp α cmp] {t : RBNode α} :
         ⟨vr, fun _ h => (hR _ h).2.2, fun _ h => (hR _ h).1, or⟩⟩⟩
 
 theorem isOrdered_iff [@TransCmp α cmp] {t : RBNode α} :
-    isOrdered cmp t ↔ Ordered cmp t := by simp [isOrdered_iff']
+    isOrdered cmp t ↔ @Ordered α ⟨cmp⟩ t := by simp [isOrdered_iff']
 
-instance (cmp) [@TransCmp α cmp] (t) : Decidable (Ordered cmp t) := decidable_of_iff _ isOrdered_iff
+instance (cmp) [@TransCmp α cmp] (t) : Decidable (@Ordered α ⟨cmp⟩ t) := decidable_of_iff _ isOrdered_iff
 
 /--
 A cut is like a homomorphism of orderings: it is a monotonic predicate with respect to `cmp`,
@@ -226,7 +226,7 @@ theorem Stream.next?_toList {s : RBNode.Stream α} :
   cases s <;> simp [next?, toStream_toList']
 
 theorem ordered_iff {t : RBNode α} :
-    t.Ordered cmp ↔ t.toList.Pairwise (cmpLT cmp) := by
+    @Ordered α ⟨cmp⟩ t ↔ t.toList.Pairwise (cmpLT cmp) := by
   induction t with
   | nil => simp
   | node c l v r ihl ihr =>
@@ -234,7 +234,7 @@ theorem ordered_iff {t : RBNode α} :
       and_assoc, and_left_comm, and_comm, imp_and, forall_and]
     exact fun _ _ hl hr a ha b hb => (hl _ ha).trans (hr _ hb)
 
-theorem Ordered.toList_sorted {t : RBNode α} : t.Ordered cmp → t.toList.Pairwise (cmpLT cmp) :=
+theorem Ordered.toList_sorted {t : RBNode α} : @Ordered α ⟨cmp⟩ t → t.toList.Pairwise (cmpLT cmp) :=
   ordered_iff.1
 
 theorem min?_mem {t : RBNode α} (h : t.min? = some a) : a ∈ t := by
@@ -242,7 +242,7 @@ theorem min?_mem {t : RBNode α} (h : t.min? = some a) : a ∈ t := by
   rw [← mem_toList]
   revert h; cases toList t <;> rintro ⟨⟩; constructor
 
-theorem Ordered.min?_le {t : RBNode α} [TransCmp cmp] (ht : t.Ordered cmp) (h : t.min? = some a)
+theorem Ordered.min?_le {t : RBNode α} [TransCmp cmp] (ht : @Ordered α ⟨cmp⟩ t) (h : t.min? = some a)
     (x) (hx : x ∈ t) : cmp a x ≠ .gt := by
   rw [min?_eq_toList_head?] at h
   rw [← mem_toList] at hx
@@ -254,7 +254,7 @@ theorem Ordered.min?_le {t : RBNode α} [TransCmp cmp] (ht : t.Ordered cmp) (h :
 theorem max?_mem {t : RBNode α} (h : t.max? = some a) : a ∈ t := by
   simpa using min?_mem ((min?_reverse _).trans h)
 
-theorem Ordered.le_max? {t : RBNode α} [TransCmp cmp] (ht : t.Ordered cmp) (h : t.max? = some a)
+theorem Ordered.le_max? {t : RBNode α} [TransCmp cmp] (ht : @Ordered α ⟨cmp⟩ t) (h : t.max? = some a)
     (x) (hx : x ∈ t) : cmp x a ≠ .gt :=
   ht.reverse.min?_le ((min?_reverse _).trans h) _ (by simpa using hx)
 
@@ -306,7 +306,7 @@ theorem find?_some_mem {t : RBNode α} : x ∈ t.find? cut → x ∈ t := by
 theorem find?_some_memP {t : RBNode α} (h : x ∈ t.find? cut) : MemP cut t :=
   memP_def.2 ⟨_, find?_some_mem h, find?_some_eq_eq h⟩
 
-theorem Ordered.memP_iff_find? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
+theorem Ordered.memP_iff_find? [@TransCmp α cmp] [IsCut cmp cut] (ht : @Ordered α ⟨cmp⟩ t) :
     MemP cut t ↔ ∃ x, t.find? cut = some x := by
   refine ⟨fun H => ?_, fun ⟨x, h⟩ => find?_some_memP h⟩
   induction t with simp [find?] at H ⊢
@@ -330,7 +330,7 @@ theorem Ordered.memP_iff_find? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered 
       · exact hx
     · exact ⟨_, rfl⟩
 
-theorem Ordered.unique [@TransCmp α cmp] (ht : Ordered cmp t)
+theorem Ordered.unique [@TransCmp α cmp] (ht : @Ordered α ⟨cmp⟩ t)
     (hx : x ∈ t) (hy : y ∈ t) (e : cmp x y = .eq) : x = y := by
   induction t with
   | nil => cases hx
@@ -348,7 +348,7 @@ theorem Ordered.unique [@TransCmp α cmp] (ht : Ordered cmp t)
         ((All_def.1 lx _ hy).trans (All_def.1 xr _ hx)).1
     · exact ihr hr hx hy
 
-theorem Ordered.find?_some [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered cmp t) :
+theorem Ordered.find?_some [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : @Ordered α ⟨cmp⟩ t) :
     t.find? cut = some x ↔ x ∈ t ∧ cut x = .eq := by
   refine ⟨fun h => ⟨find?_some_mem h, find?_some_eq_eq h⟩, fun ⟨hx, e⟩ => ?_⟩
   have ⟨y, hy⟩ := ht.memP_iff_find?.1 (memP_def.2 ⟨_, hx, e⟩)
@@ -466,7 +466,7 @@ theorem upperBound?_of_some {t : RBNode α} : ∃ x, t.upperBound? cut (some y) 
 theorem lowerBound?_of_some {t : RBNode α} : ∃ x, t.lowerBound? cut (some y) = some x := by
   rw [← reverse_reverse t, lowerBound?_reverse]; exact upperBound?_of_some
 
-theorem Ordered.upperBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t) :
+theorem Ordered.upperBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : @Ordered α ⟨cmp⟩ t) :
     (∃ x, t.upperBound? cut = some x) ↔ ∃ x ∈ t, cut x ≠ .gt := by
   refine ⟨fun ⟨x, hx⟩ => ⟨_, upperBound?_mem hx, upperBound?_ge hx⟩, fun H => ?_⟩
   obtain ⟨x, hx, e⟩ := H
@@ -481,13 +481,13 @@ theorem Ordered.upperBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : Order
       · exact ihr h.2.2.2 _ hx e
     · exact ⟨_, rfl⟩
 
-theorem Ordered.lowerBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t) :
+theorem Ordered.lowerBound?_exists [@TransCmp α cmp] [IsCut cmp cut] (h : @Ordered α ⟨cmp⟩ t) :
     (∃ x, t.lowerBound? cut = some x) ↔ ∃ x ∈ t, cut x ≠ .lt := by
   conv => enter [2, 1, x]; rw [Ne, ← Ordering.swap_inj]
   rw [← reverse_reverse t, lowerBound?_reverse]
   simpa [-Ordering.swap_inj] using h.reverse.upperBound?_exists (cut := (cut · |>.swap))
 
-theorem Ordered.upperBound?_least_ub [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t)
+theorem Ordered.upperBound?_least_ub [@TransCmp α cmp] [IsCut cmp cut] (h : @Ordered α ⟨cmp⟩ t)
     (hub : ∀ {x}, ub = some x → t.All (cmpLT cmp · x)) :
     t.upperBound? cut ub = some x → y ∈ t → cut x = .lt → cmp y x = .lt → cut y = .gt := by
   induction t generalizing ub with
@@ -509,7 +509,7 @@ theorem Ordered.upperBound?_least_ub [@TransCmp α cmp] [IsCut cmp cut] (h : Ord
     · cases h₁; cases hx.symm.trans hv
     · cases h₁; cases hx.symm.trans hv
 
-theorem Ordered.lowerBound?_greatest_lb [@TransCmp α cmp] [IsCut cmp cut] (h : Ordered cmp t)
+theorem Ordered.lowerBound?_greatest_lb [@TransCmp α cmp] [IsCut cmp cut] (h : @Ordered α ⟨cmp⟩ t)
     (hlb : ∀ {x}, lb = some x → t.All (cmpLT cmp x ·)) :
     t.lowerBound? cut lb = some x → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
   intro h1 h2 h3 h4
@@ -524,7 +524,7 @@ A statement of the least-ness of the result of `upperBound?`. If `x` is the retu
 `upperBound?` and it is strictly greater than the cut, then any other `y < x` in the tree is in fact
 strictly less than the cut (so there is no exact match, and nothing closer to the cut).
 -/
-theorem Ordered.upperBound?_least [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t)
+theorem Ordered.upperBound?_least [@TransCmp α cmp] [IsCut cmp cut] (ht : @Ordered α ⟨cmp⟩ t)
     (H : t.upperBound? cut = some x) (hy : y ∈ t)
     (xy : cmp y x = .lt) (hx : cut x = .lt) : cut y = .gt :=
   ht.upperBound?_least_ub (by nofun) H hy hx xy
@@ -534,12 +534,12 @@ A statement of the greatest-ness of the result of `lowerBound?`. If `x` is the r
 `lowerBound?` and it is strictly less than the cut, then any other `y > x` in the tree is in fact
 strictly greater than the cut (so there is no exact match, and nothing closer to the cut).
 -/
-theorem Ordered.lowerBound?_greatest [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t)
+theorem Ordered.lowerBound?_greatest [@TransCmp α cmp] [IsCut cmp cut] (ht : @Ordered α ⟨cmp⟩ t)
     (H : t.lowerBound? cut none = some x) (hy : y ∈ t)
     (xy : cmp x y = .lt) (hx : cut x = .gt) : cut y = .lt :=
   ht.lowerBound?_greatest_lb (by nofun) H hy hx xy
 
-theorem Ordered.memP_iff_upperBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
+theorem Ordered.memP_iff_upperBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : @Ordered α ⟨cmp⟩ t) :
     t.MemP cut ↔ ∃ x, t.upperBound? cut = some x ∧ cut x = .eq := by
   refine memP_def.trans ⟨fun ⟨y, hy, ey⟩ => ?_, fun ⟨x, hx, e⟩ => ⟨_, upperBound?_mem hx, e⟩⟩
   have ⟨x, hx⟩ := ht.upperBound?_exists.2 ⟨_, hy, fun h => nomatch ey.symm.trans h⟩
@@ -551,7 +551,7 @@ theorem Ordered.memP_iff_upperBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Or
   · rfl
   · cases upperBound?_ge hx ex
 
-theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Ordered cmp t) :
+theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : @Ordered α ⟨cmp⟩ t) :
     t.MemP cut ↔ ∃ x, t.lowerBound? cut = some x ∧ cut x = .eq := by
   refine memP_def.trans ⟨fun ⟨y, hy, ey⟩ => ?_, fun ⟨x, hx, e⟩ => ⟨_, lowerBound?_mem hx, e⟩⟩
   have ⟨x, hx⟩ := ht.lowerBound?_exists.2 ⟨_, hy, fun h => nomatch ey.symm.trans h⟩
@@ -564,7 +564,7 @@ theorem Ordered.memP_iff_lowerBound? [@TransCmp α cmp] [IsCut cmp cut] (ht : Or
     · cases ey.symm.trans <| IsCut.gt_trans (OrientedCmp.cmp_eq_gt.1 e) ex
 
 /-- A stronger version of `lowerBound?_greatest` that holds when the cut is strict. -/
-theorem Ordered.lowerBound?_lt [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered cmp t)
+theorem Ordered.lowerBound?_lt [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : @Ordered α ⟨cmp⟩ t)
     (H : t.lowerBound? cut = some x) (hy : y ∈ t) : cmp x y = .lt ↔ cut y = .lt := by
   refine ⟨fun h => ?_, fun h => OrientedCmp.cmp_eq_gt.1 ?_⟩
   · cases e : cut x
@@ -574,7 +574,7 @@ theorem Ordered.lowerBound?_lt [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Or
   · by_contra h'; exact lowerBound?_le H <| IsCut.le_lt_trans (cmp := cmp) (cut := cut) h' h
 
 /-- A stronger version of `upperBound?_least` that holds when the cut is strict. -/
-theorem Ordered.lt_upperBound? [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : Ordered cmp t)
+theorem Ordered.lt_upperBound? [@TransCmp α cmp] [IsStrictCut cmp cut] (ht : @Ordered α ⟨cmp⟩ t)
     (H : t.upperBound? cut = some x) (hy : y ∈ t) : cmp y x = .lt ↔ cut y = .gt := by
   rw [← reverse_reverse t, upperBound?_reverse] at H
   rw [← Ordering.swap_inj (o₂ := .gt)]
@@ -665,14 +665,14 @@ protected theorem Balanced.insert {path : Path α} (hp : path.Balanced c₀ n₀
   | .black ha hb => ⟨_, _, hp.fill (.black ha hb)⟩
 
 theorem Ordered.insert : ∀ {path : Path α} {t : RBNode α},
-    path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → path.RootOrdered cmp v →
-    t.OnRoot (cmpEq cmp v) → (path.insert t v).Ordered cmp
+    path.Ordered cmp → @RBNode.Ordered α ⟨cmp⟩ t → t.All (path.RootOrdered cmp) → path.RootOrdered cmp v →
+    t.OnRoot (cmpEq cmp v) → @RBNode.Ordered α ⟨cmp⟩ (path.insert t v)
   | _, nil, hp, _, _, vp, _ => hp.insertNew vp
   | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩, vp, xv => Ordered.fill.2
     ⟨hp, ⟨ax.imp xv.lt_congr_right.2, xb.imp xv.lt_congr_left.2, ha, hb⟩, vp, ap, bp⟩
 
 theorem Ordered.erase : ∀ {path : Path α} {t : RBNode α},
-    path.Ordered cmp → t.Ordered cmp → t.All (path.RootOrdered cmp) → (path.erase t).Ordered cmp
+    path.Ordered cmp → @RBNode.Ordered α ⟨cmp⟩ t → t.All (path.RootOrdered cmp) → @RBNode.Ordered α ⟨cmp⟩ (path.erase t)
   | _, nil, hp, ht, tp => Ordered.fill.2 ⟨hp, ht, tp⟩
   | _, node .., hp, ⟨ax, xb, ha, hb⟩, ⟨_, ap, bp⟩ => hp.del (ha.append ax xb hb) (ap.append bp)
 
@@ -783,16 +783,16 @@ theorem mem_insert_of_mem {t : RBNode α} (ht : Balanced t c n) (h : v' ∈ t) :
     exact .inr (Path.zoom_zoomed₁ e)
 
 theorem exists_find?_insert_self [@TransCmp α cmp] [IsCut cmp cut]
-    {t : RBNode α} (ht : Balanced t c n) (ht₂ : Ordered cmp t) (hv : cut v = .eq) :
+    {t : RBNode α} (ht : Balanced t c n) (ht₂ : @Ordered α ⟨cmp⟩ t) (hv : cut v = .eq) :
     ∃ x, (t.insert cmp v).find? cut = some x :=
   ht₂.insert.memP_iff_find?.1 <| memP_def.2 ⟨_, mem_insert_self ht, hv⟩
 
 theorem find?_insert_self [@TransCmp α cmp] [IsStrictCut cmp cut]
-    {t : RBNode α} (ht : Balanced t c n) (ht₂ : Ordered cmp t) (hv : cut v = .eq) :
+    {t : RBNode α} (ht : Balanced t c n) (ht₂ : @Ordered α ⟨cmp⟩ t) (hv : cut v = .eq) :
     (t.insert cmp v).find? cut = some v :=
   ht₂.insert.find?_some.2 ⟨mem_insert_self ht, hv⟩
 
-theorem mem_insert [@TransCmp α cmp] {t : RBNode α} (ht : Balanced t c n) (ht₂ : Ordered cmp t) :
+theorem mem_insert [@TransCmp α cmp] {t : RBNode α} (ht : Balanced t c n) (ht₂ : @Ordered α ⟨cmp⟩ t) :
     v' ∈ t.insert cmp v ↔ (v' ∈ t ∧ t.find? (cmp v) ≠ some v') ∨ v' = v := by
   refine ⟨fun h => ?_, fun | .inl ⟨h₁, h₂⟩ => ?_ | .inr h => ?_⟩
   · match e : zoom (cmp v) t with
