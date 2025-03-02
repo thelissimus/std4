@@ -248,14 +248,13 @@ theorem cmpEq_iff [TransCmp cmp] : cmpEq cmp x y ↔ cmp x y = .eq := ⟨fun ⟨
 instance (cmp) [TransCmp cmp] : Decidable (cmpEq cmp x y) := decidable_of_iff' _ cmpEq_iff
 
 /-- `O(n)`. Verifies an ordering relation on the nodes of the tree. -/
-def isOrdered (cmp : α → α → Ordering)
-    (t : RBNode α) (l : Option α := none) (r : Option α := none) : Bool :=
+def isOrdered [Ord α] (t : RBNode α) (l : Option α := none) (r : Option α := none) : Bool :=
   match t with
   | nil =>
     match l, r with
-    | some l, some r => cmp l r = .lt
+    | some l, some r => compare l r = .lt
     | _, _ => true
-  | node _ a v b => isOrdered cmp a l v && isOrdered cmp b v r
+  | node _ a v b => isOrdered a l v && isOrdered b v r
 
 /-- The first half of Okasaki's `balance`, concerning red-red sequences in the left child. -/
 @[inline] def balance1 : RBNode α → α → RBNode α → RBNode α
