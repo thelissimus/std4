@@ -49,7 +49,7 @@ theorem mem_congr [Ord α] [Std.TransCmp (α := α) compare] {t : RBNode α} (h 
   rw [Mem, Mem, iff_iff_eq]; congr 1; funext; rw [Std.TransCmp.congr_left h]
 
 theorem isOrdered_iff' [Std.TransCmp (α := α) cmp] {t : RBNode α} :
-    isOrdered cmp t L R ↔
+    @isOrdered α ⟨cmp⟩ t L R ↔
     (∀ a ∈ L, t.All (cmpLT cmp a ·)) ∧
     (∀ a ∈ R, t.All (cmpLT cmp · a)) ∧
     (∀ a ∈ L, ∀ b ∈ R, cmpLT cmp a b) ∧
@@ -71,7 +71,7 @@ theorem isOrdered_iff' [Std.TransCmp (α := α) cmp] {t : RBNode α} :
         ⟨vr, fun _ h => (hR _ h).2.2, fun _ h => (hR _ h).1, or⟩⟩⟩
 
 theorem isOrdered_iff [Std.TransCmp (α := α) cmp] {t : RBNode α} :
-    isOrdered cmp t ↔ @Ordered α ⟨cmp⟩ t := by simp [isOrdered_iff']
+    @isOrdered α ⟨cmp⟩ t none none ↔ @Ordered α ⟨cmp⟩ t := by simp [isOrdered_iff']
 
 instance (cmp) [Std.TransCmp (α := α) cmp] (t) : Decidable (@Ordered α ⟨cmp⟩ t) :=
   decidable_of_iff _ isOrdered_iff
